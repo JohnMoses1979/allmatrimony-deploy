@@ -1,0 +1,7 @@
+
+target/
+*.zip
+uploads/
+node_modules/
+.env
+*.env
