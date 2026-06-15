@@ -1,45 +1,26 @@
 package com.allmatrimony.backend.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-@Configuration
-@ConfigurationProperties(prefix = "twilio")
+@Component
 public class TwilioProperties {
 
-    private String accountSid;
-    private String authToken;
-    private String verifySid;
-
     public String getAccountSid() {
-        return accountSid;
-    }
-
-    public void setAccountSid(String accountSid) {
-        this.accountSid = accountSid;
+        return System.getenv("TWILIO_ACCOUNT_SID");
     }
 
     public String getAuthToken() {
-        return authToken;
+        return System.getenv("TWILIO_AUTH_TOKEN");
     }
 
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
-    }
-
-    public String getVerifySid() {
-        return verifySid;
-    }
-
-    public void setVerifySid(String verifySid) {
-        this.verifySid = verifySid;
+    public String getPhoneNumber() {
+        return System.getenv("TWILIO_PHONE_NUMBER");
     }
 
     public boolean isConfigured() {
-        return hasValue(accountSid) && hasValue(authToken) && hasValue(verifySid);
-    }
-
-    private boolean hasValue(String value) {
-        return value != null && !value.isBlank() && !value.startsWith("YOUR_");
+        return StringUtils.hasText(getAccountSid())
+                && StringUtils.hasText(getAuthToken())
+                && StringUtils.hasText(getPhoneNumber());
     }
 }

@@ -736,15 +736,11 @@ export default function RegisterScreen({ navigation }) {
       });
 
       const data = await response.json();
-      const otpSendFailed =
-        data?.demoOtp ||
-        /twilio otp failed|demo otp|local testing/i.test(data?.message || "");
-
-      if (!response.ok || !data.success || otpSendFailed) {
+      if (!response.ok || !data.success) {
         Alert.alert("OTP Failed", "OTP failed. Please try again later.");
         setMessage({
           type: "error",
-          text: "OTP failed. Please try again later.",
+          text: data?.message || "OTP failed. Please try again later.",
         });
         return;
       }
@@ -753,7 +749,7 @@ export default function RegisterScreen({ navigation }) {
       setPhoneVerified(false);
       setMessage({
         type: "success",
-        text: data.message || "OTP sent successfully.",
+        text: data?.demoOtp ? `Demo OTP generated. Use ${data.demoOtp}.` : (data.message || "OTP sent successfully."),
       });
     } catch (error) {
       setMessage({

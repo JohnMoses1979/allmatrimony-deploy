@@ -2,14 +2,15 @@ package com.allmatrimony.backend.service;
 
 import com.allmatrimony.backend.config.TwilioProperties;
 import com.twilio.Twilio;
-import com.twilio.rest.verify.v2.service.Verification;
-import com.twilio.rest.verify.v2.service.VerificationCheck;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TwilioSmsService implements SmsService {
 
     private final TwilioProperties twilioProperties;
+    private boolean initialized = false;
 
     public TwilioSmsService(TwilioProperties twilioProperties) {
         this.twilioProperties = twilioProperties;
@@ -23,42 +24,29 @@ public class TwilioSmsService implements SmsService {
 
         initTwilio();
 
-        Verification.creator(
-                twilioProperties.getVerifySid(),
-                toE164(phone),
-                "sms"
+        Message.creator(
+                new PhoneNumber(phone),
+                new PhoneNumber(twilioProperties.getPhoneNumber()),
+                "Your All Matrimony OTP is " + otp + ". Do not share this code."
         ).create();
     }
 
     @Override
     public boolean verifyOtp(String phone, String otp) {
-        if (!isConfigured()) {
-            throw new IllegalStateException("Twilio credentials are not configured.");
-        }
-
-        initTwilio();
-
-        VerificationCheck verificationCheck = VerificationCheck.creator(twilioProperties.getVerifySid())
-                .setTo(toE164(phone))
-                .setCode(otp)
-                .create();
-
-        return "approved".equalsIgnoreCase(verificationCheck.getStatus());
+        return false;
     }
 
-    @Override
     public boolean isConfigured() {
         return twilioProperties.isConfigured();
     }
 
     private void initTwilio() {
-        Twilio.init(
-                twilioProperties.getAccountSid(),
-                twilioProperties.getAuthToken()
-        );
-    }
-
-    private String toE164(String phone) {
-        return phone.startsWith("+") ? phone : "+91" + phone;
+        if (!initialized) {
+            Twilio.init(
+                    twilioProperties.getAccountSid(),
+                    twilioProperties.getAuthToken()
+            );
+            initialized = true;
+        }
     }
 }

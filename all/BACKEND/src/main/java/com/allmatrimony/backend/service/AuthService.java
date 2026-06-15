@@ -77,7 +77,7 @@ public class AuthService {
         }
 
         try {
-            smsService.sendOtp(phone, otp);
+            smsService.sendOtp(toSmsPhone(phone), otp);
         } catch (Exception error) {
             LOGGER.warn("Twilio OTP send failed for phone {}.", phone, error);
             return ApiResponse.failure("OTP failed. Please try again later.");
@@ -118,21 +118,8 @@ public class AuthService {
             throw new IllegalArgumentException("OTP expired. Please send OTP again.");
         }
 
-        if (smsService.isConfigured()) {
-            try {
-                boolean approved = smsService.verifyOtp(phone, otp);
-
-                if (!approved) {
-                    throw new IllegalArgumentException("Invalid OTP. Please try again.");
-                }
-            } catch (IllegalArgumentException error) {
-                throw error;
-            } catch (Exception error) {
-                LOGGER.warn("Twilio OTP verify failed for phone {}.", phone, error);
-                throw new IllegalArgumentException("OTP verification failed. Please try again later.");
-            }
-        } else {
-            throw new IllegalArgumentException("OTP verification failed. Please try again later.");
+        if (!latestOtp.getOtp().equals(otp)) {
+            throw new IllegalArgumentException("Invalid OTP. Please try again.");
         }
 
         latestOtp.setVerified(true);
@@ -375,6 +362,29 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
+    }
+
+
+    private String toSmsPhone(String phone) {
+        if (phone == null) {
+            return phone;
+        }
+
+        String digits = phone.replaceAll("\\D", "");
+
+        if (digits.length() == 10) {
+            return "+91" + digits;
+        }
+
+        if (digits.length() == 12 && digits.startsWith("91")) {
+            return "+" + digits;
+        }
+
+        if (phone.trim().startsWith("+")) {
+            return phone.trim();
+        }
+
+        return phone;
     }
 
     private String generateOtp() {
