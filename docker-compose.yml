@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: all_matrimony_mysql
+    restart: always
+    env_file:
+      - ./backend.env
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./all/BACKEND
+      dockerfile: Dockerfile
+    container_name: all_matrimony_backend
+    restart: always
+    env_file:
+      - ./backend.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+      - "80:8080"
+    volumes:
+      - ./uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./all
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE_URL: http://13.206.220.74:8090
+    container_name: all_matrimony_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  mysql_data:

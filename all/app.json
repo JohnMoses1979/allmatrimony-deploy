@@ -23,20 +23,24 @@
       "permissions": [
         "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",
-        "RECORD_AUDIO",
-        "android.permission.RECORD_AUDIO"
+        "INTERNET"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.all"
+      "package": "com.anonymous.all",
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {},
+    "extra": {
+      "eas": {
+        "projectId": "c1c8d870-9ee5-468b-9b0b-ef2e3ed4d502"
+      }
+    },
     "plugins": [
       "expo-asset",
       [
@@ -46,6 +50,7 @@
           "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to recognize your voice questions."
         }
       ]
-    ]
+    ],
+    "owner": "jaya5242"
   }
 }

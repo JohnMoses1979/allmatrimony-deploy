@@ -1,7 +1,25 @@
-
-target/
-*.zip
-uploads/
-node_modules/
+backend.env
+frontend.env
 .env
 *.env
+uploads/
+node_modules/
+target/
+
+# env / secrets
+backend.env
+frontend.env
+.env
+*.env
+all/.env
+
+# build logs
+all/eas-build.log
+eas-build.log
+
+# generated folders
+uploads/
+node_modules/
+all/node_modules/
+target/
+all/BACKEND/target/
