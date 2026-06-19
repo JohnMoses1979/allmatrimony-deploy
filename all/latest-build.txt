@@ -1,0 +1,20 @@
+
+Builds for @jaya5242/all:
+
+ID                       db6df9e7-e7d7-40d9-900e-f81c8491e9ef
+Platform                 Android
+Status                   in queue
+Profile                  preview
+Distribution             store
+SDK Version              54.0.0
+Version                  1.0.0
+Version code             1
+Commit                   5cd772451888e4b14e9c6e54108cba68f582527b
+Logs                     https://expo.dev/accounts/jaya5242/projects/all/builds/db6df9e7-e7d7-40d9-900e-f81c8491e9ef
+Application Archive URL  null
+Build Artifacts URL      null
+Fingerprint              <in progress>
+Started at               6/17/2026, 11:32:46 AM
+Finished at              <in progress>
+Started by               jaya5242
+[?25l[2K[1G[36m?[39m [1mLoad more builds?[22m [90m›[39m [90m(Y/n)[39m

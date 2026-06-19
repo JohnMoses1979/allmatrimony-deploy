@@ -14,13 +14,13 @@ public class TwilioProperties {
         return System.getenv("TWILIO_AUTH_TOKEN");
     }
 
-    public String getPhoneNumber() {
-        return System.getenv("TWILIO_PHONE_NUMBER");
+    public String getVerifyServiceSid() {
+        return System.getenv("TWILIO_VERIFY_SERVICE_SID");
     }
 
     public boolean isConfigured() {
         return StringUtils.hasText(getAccountSid())
                 && StringUtils.hasText(getAuthToken())
-                && StringUtils.hasText(getPhoneNumber());
+                && StringUtils.hasText(getVerifyServiceSid());
     }
 }

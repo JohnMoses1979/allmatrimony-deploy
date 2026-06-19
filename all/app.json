@@ -31,7 +31,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.all",
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -48,6 +49,14 @@
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone for voice questions.",
           "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to recognize your voice questions."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],

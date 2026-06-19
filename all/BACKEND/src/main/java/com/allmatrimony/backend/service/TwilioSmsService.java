@@ -2,8 +2,8 @@ package com.allmatrimony.backend.service;
 
 import com.allmatrimony.backend.config.TwilioProperties;
 import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
+import com.twilio.rest.verify.v2.service.Verification;
+import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,26 +18,84 @@ public class TwilioSmsService implements SmsService {
 
     @Override
     public void sendOtp(String phone, String otp) {
+        phone = formatPhone(phone);
+
         if (!isConfigured()) {
             throw new IllegalStateException("Twilio credentials are not configured.");
         }
 
         initTwilio();
 
-        Message.creator(
-                new PhoneNumber(phone),
-                new PhoneNumber(twilioProperties.getPhoneNumber()),
-                "Your All Matrimony OTP is " + otp + ". Do not share this code."
-        ).create();
+        try {
+            Verification verification = Verification.creator(
+                    twilioProperties.getVerifyServiceSid(),
+                    phone,
+                    "sms"
+            ).create();
+
+            System.out.println("TWILIO OTP SENT STATUS = " + verification.getStatus());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
     public boolean verifyOtp(String phone, String otp) {
-        return false;
+        phone = formatPhone(phone);
+
+        System.out.println("VERIFY PHONE = " + phone);
+        System.out.println("VERIFY OTP = " + otp);
+        System.out.println("VERIFY SERVICE = " + twilioProperties.getVerifyServiceSid());
+
+        if (!isConfigured()) {
+            throw new IllegalStateException("Twilio credentials are not configured.");
+        }
+
+        initTwilio();
+
+        try {
+            VerificationCheck check = VerificationCheck.creator(
+                    twilioProperties.getVerifyServiceSid()
+            )
+            .setTo(phone)
+            .setCode(otp.trim())
+            .create();
+
+            System.out.println("TWILIO VERIFY STATUS = " + check.getStatus());
+            return "approved".equals(check.getStatus());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
+    private String formatPhone(String phone) {
+        if (phone == null) {
+            return null;
+        }
+
+        phone = phone.trim();
+
+        if (phone.startsWith("+")) {
+            return phone;
+        }
+
+        if (phone.length() == 10) {
+            return "+91" + phone;
+        }
+
+        return phone;
+    }
+
+    @Override
     public boolean isConfigured() {
-        return twilioProperties.isConfigured();
+        return twilioProperties.getAccountSid() != null
+                && !twilioProperties.getAccountSid().isBlank()
+                && twilioProperties.getAuthToken() != null
+                && !twilioProperties.getAuthToken().isBlank()
+                && twilioProperties.getVerifyServiceSid() != null
+                && !twilioProperties.getVerifyServiceSid().isBlank();
     }
 
     private void initTwilio() {

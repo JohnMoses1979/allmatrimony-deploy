@@ -23,11 +23,11 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 @Service
 public class AuthService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
     private static final String PURPOSE_FORGOT_PASSWORD = "FORGOT_PASSWORD";
 
@@ -69,27 +69,17 @@ public class AuthService {
             throw new IllegalArgumentException("Please enter a valid 10-digit phone number.");
         }
 
-        String otp = generateOtp();
-
         if (!smsService.isConfigured()) {
             LOGGER.warn("Twilio OTP send skipped for phone {} because Twilio is not configured.", phone);
             return ApiResponse.failure("OTP failed. Please try again later.");
         }
 
         try {
-            smsService.sendOtp(toSmsPhone(phone), otp);
+            smsService.sendOtp(toSmsPhone(phone), null);
         } catch (Exception error) {
             LOGGER.warn("Twilio OTP send failed for phone {}.", phone, error);
             return ApiResponse.failure("OTP failed. Please try again later.");
         }
-
-        PhoneOtp entity = new PhoneOtp();
-        entity.setPhone(phone);
-        entity.setOtp(otp);
-        entity.setVerified(false);
-        entity.setCreatedAt(LocalDateTime.now());
-        entity.setExpiresAt(LocalDateTime.now().plusMinutes(5));
-        phoneOtpRepository.save(entity);
 
         return ApiResponse.success("OTP sent successfully to your phone.");
     }
@@ -107,23 +97,19 @@ public class AuthService {
             throw new IllegalArgumentException("Please enter valid 6-digit OTP.");
         }
 
-        PhoneOtp latestOtp = phoneOtpRepository.findTopByPhoneOrderByCreatedAtDesc(phone)
-                .orElseThrow(() -> new IllegalArgumentException("OTP not found. Please send OTP first."));
+        boolean verified = smsService.verifyOtp(toSmsPhone(phone), otp);
 
-        if (latestOtp.isVerified()) {
-            return ApiResponse.success("Phone number already verified.");
-        }
-
-        if (latestOtp.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("OTP expired. Please send OTP again.");
-        }
-
-        if (!latestOtp.getOtp().equals(otp)) {
+        if (!verified) {
             throw new IllegalArgumentException("Invalid OTP. Please try again.");
         }
 
-        latestOtp.setVerified(true);
-        phoneOtpRepository.save(latestOtp);
+        PhoneOtp entity = new PhoneOtp();
+        entity.setPhone(phone);
+        entity.setOtp(otp);
+        entity.setVerified(true);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setExpiresAt(LocalDateTime.now().plusMinutes(5));
+        phoneOtpRepository.save(entity);
 
         return ApiResponse.success("Phone number verified successfully.");
     }
@@ -364,7 +350,6 @@ public class AuthService {
         return email == null ? "" : email.trim().toLowerCase();
     }
 
-
     private String toSmsPhone(String phone) {
         if (phone == null) {
             return phone;
@@ -388,7 +373,7 @@ public class AuthService {
     }
 
     private String generateOtp() {
-        int otp = 100000 + new Random().nextInt(900000);
+        int otp = 100000 + new java.util.Random().nextInt(900000);
         return String.valueOf(otp);
     }
 }
