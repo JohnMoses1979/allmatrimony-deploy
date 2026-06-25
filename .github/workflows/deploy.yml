@@ -17,9 +17,15 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/ec2_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo SSH connection successful"
 
       - name: Sync project files to EC2
         run: |
@@ -37,15 +43,17 @@ jobs:
             --exclude "target/" \
             --exclude "all/BACKEND/target/" \
             --exclude "all/eas-build.log" \
-            -e "ssh -i ~/.ssh/ec2_key" \
+            -e "ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no" \
             ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/allmatrimony-deploy/
 
       - name: Rebuild and restart Docker containers
         run: |
-          ssh -i ~/.ssh/ec2_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -e
-            cd ~/allmatrimony-deploy
-            sudo docker compose up -d --build mysql backend frontend
-            sudo docker image prune -f
-            sudo docker ps
+          ssh -i ~/.ssh/ec2_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+              set -e
+              cd ~/allmatrimony-deploy
+              sudo docker compose up -d --build mysql backend frontend
+              sudo docker image prune -f
+              sudo docker ps
           EOF
