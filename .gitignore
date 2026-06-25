@@ -54,3 +54,19 @@ target/
 all/BACKEND/target/
 all/eas-build.log
 eas-build.log
+
+# secrets / env files
+backend.env
+frontend.env
+.env
+*.env
+all/.env
+
+# generated files
+uploads/
+node_modules/
+all/node_modules/
+target/
+all/BACKEND/target/
+all/eas-build.log
+eas-build.log

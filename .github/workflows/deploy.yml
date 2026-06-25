@@ -6,23 +6,32 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: allmatrimony-production-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
-    name: Deploy on EC2 Self Hosted Runner
-    runs-on: self-hosted
+    name: Build and Deploy to EC2
+    runs-on: [self-hosted, Linux, X64, allmatrimony]
 
     steps:
       - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Preserve server env files
+      - name: Preserve server env files and uploads
         run: |
+          set -e
           mkdir -p /home/ubuntu/allmatrimony-env-backup
+          mkdir -p /home/ubuntu/allmatrimony-deploy/uploads
+
           [ -f /home/ubuntu/allmatrimony-deploy/backend.env ] && cp /home/ubuntu/allmatrimony-deploy/backend.env /home/ubuntu/allmatrimony-env-backup/backend.env || true
           [ -f /home/ubuntu/allmatrimony-deploy/frontend.env ] && cp /home/ubuntu/allmatrimony-deploy/frontend.env /home/ubuntu/allmatrimony-env-backup/frontend.env || true
 
-      - name: Sync code to deploy folder
+      - name: Sync latest code to deployment folder
         run: |
+          set -e
+
           rsync -az --delete \
             --exclude ".git" \
             --exclude ".github" \
@@ -37,21 +46,48 @@ jobs:
             --exclude "target/" \
             --exclude "all/BACKEND/target/" \
             --exclude "all/eas-build.log" \
+            --exclude "eas-build.log" \
             ./ /home/ubuntu/allmatrimony-deploy/
 
       - name: Restore env files
         run: |
+          set -e
+
           [ -f /home/ubuntu/allmatrimony-env-backup/backend.env ] && cp /home/ubuntu/allmatrimony-env-backup/backend.env /home/ubuntu/allmatrimony-deploy/backend.env || true
           [ -f /home/ubuntu/allmatrimony-env-backup/frontend.env ] && cp /home/ubuntu/allmatrimony-env-backup/frontend.env /home/ubuntu/allmatrimony-deploy/frontend.env || true
 
-      - name: Deploy Docker containers
+          if [ ! -f /home/ubuntu/allmatrimony-deploy/backend.env ]; then
+            echo "ERROR: backend.env missing on EC2."
+            exit 1
+          fi
+
+          if [ ! -f /home/ubuntu/allmatrimony-deploy/frontend.env ]; then
+            echo "ERROR: frontend.env missing on EC2."
+            exit 1
+          fi
+
+      - name: Build and restart Docker containers
         run: |
+          set -e
+
           cd /home/ubuntu/allmatrimony-deploy
+
+          sudo docker compose config
           sudo docker compose up -d --build mysql backend frontend
           sudo docker image prune -f
           sudo docker ps
 
-      - name: Test backend
+      - name: Test backend health
         run: |
-          sleep 20
-          curl -fsS http://127.0.0.1:8090/api/health || true
+          set -e
+
+          sleep 25
+          curl -fsS http://127.0.0.1:8090/api/health
+          echo "Backend health check passed"
+
+      - name: Test frontend
+        run: |
+          set -e
+
+          curl -I http://127.0.0.1:8081 || true
+          echo "Deployment completed successfully"
