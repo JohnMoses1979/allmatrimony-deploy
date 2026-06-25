@@ -4,69 +4,25 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Deploy to EC2
-    runs-on: ubuntu-latest
+    name: Deploy on EC2 Self Hosted Runner
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Setup SSH key
-        shell: bash
+      - name: Preserve server env files
         run: |
-          set -euo pipefail
+          mkdir -p /home/ubuntu/allmatrimony-env-backup
+          [ -f /home/ubuntu/allmatrimony-deploy/backend.env ] && cp /home/ubuntu/allmatrimony-deploy/backend.env /home/ubuntu/allmatrimony-env-backup/backend.env || true
+          [ -f /home/ubuntu/allmatrimony-deploy/frontend.env ] && cp /home/ubuntu/allmatrimony-deploy/frontend.env /home/ubuntu/allmatrimony-env-backup/frontend.env || true
 
-          mkdir -p ~/.ssh
-
-          if [ -z "${{ secrets.EC2_SSH_KEY_B64 }}" ]; then
-            echo "EC2_SSH_KEY_B64 secret is empty"
-            exit 1
-          fi
-
-          printf '%s' "${{ secrets.EC2_SSH_KEY_B64 }}" | tr -d '\r\n ' | base64 --decode > ~/.ssh/ec2_key
-          chmod 600 ~/.ssh/ec2_key
-
-          ssh-keygen -y -f ~/.ssh/ec2_key > ~/.ssh/ec2_key.pub
-
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
-
-          echo "SSH key decoded and verified"
-
-      - name: Test SSH connection
-        shell: bash
+      - name: Sync code to deploy folder
         run: |
-          set -euo pipefail
-
-          ssh -i ~/.ssh/ec2_key \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=no \
-            -o BatchMode=yes \
-            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
-            "echo SSH connection successful && whoami && hostname"
-
-      - name: Prepare EC2 deploy folder
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          ssh -i ~/.ssh/ec2_key \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=no \
-            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" << 'EOF'
-              set -e
-              mkdir -p ~/allmatrimony-deploy
-              sudo apt-get update -y
-              sudo apt-get install -y rsync
-          EOF
-
-      - name: Sync project files to EC2
-        shell: bash
-        run: |
-          set -euo pipefail
-
           rsync -az --delete \
             --exclude ".git" \
             --exclude ".github" \
@@ -81,34 +37,21 @@ jobs:
             --exclude "target/" \
             --exclude "all/BACKEND/target/" \
             --exclude "all/eas-build.log" \
-            --exclude "eas-build.log" \
-            -e "ssh -i ~/.ssh/ec2_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=no" \
-            ./ "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/allmatrimony-deploy/"
+            ./ /home/ubuntu/allmatrimony-deploy/
 
-      - name: Rebuild and restart Docker containers
-        shell: bash
+      - name: Restore env files
         run: |
-          set -euo pipefail
+          [ -f /home/ubuntu/allmatrimony-env-backup/backend.env ] && cp /home/ubuntu/allmatrimony-env-backup/backend.env /home/ubuntu/allmatrimony-deploy/backend.env || true
+          [ -f /home/ubuntu/allmatrimony-env-backup/frontend.env ] && cp /home/ubuntu/allmatrimony-env-backup/frontend.env /home/ubuntu/allmatrimony-deploy/frontend.env || true
 
-          ssh -i ~/.ssh/ec2_key \
-            -o IdentitiesOnly=yes \
-            -o StrictHostKeyChecking=no \
-            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" << 'EOF'
-              set -e
+      - name: Deploy Docker containers
+        run: |
+          cd /home/ubuntu/allmatrimony-deploy
+          sudo docker compose up -d --build mysql backend frontend
+          sudo docker image prune -f
+          sudo docker ps
 
-              cd ~/allmatrimony-deploy
-
-              if [ ! -f backend.env ]; then
-                echo "ERROR: backend.env missing on EC2. Keep backend.env only on server."
-                exit 1
-              fi
-
-              sudo docker compose up -d --build mysql backend frontend
-              sudo docker image prune -f
-              sudo docker ps
-
-              echo "Testing backend health..."
-              curl -fsS http://127.0.0.1:8090/api/health || true
-
-              echo "Deployment completed"
-          EOF
+      - name: Test backend
+        run: |
+          sleep 20
+          curl -fsS http://127.0.0.1:8090/api/health || true
