@@ -1,36 +1,26 @@
 package com.allmatrimony.backend.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 public class TwilioProperties {
 
-    @Value("${twilio.account-sid:}")
-    private String accountSid;
-
-    @Value("${twilio.auth-token:}")
-    private String authToken;
-
-    @Value("${twilio.verify-service-sid:}")
-    private String verifyServiceSid;
-
     public String getAccountSid() {
-        return accountSid;
+        return System.getenv("TWILIO_ACCOUNT_SID");
     }
 
     public String getAuthToken() {
-        return authToken;
+        return System.getenv("TWILIO_AUTH_TOKEN");
     }
 
-    public String getVerifyServiceSid() {
-        return verifyServiceSid;
+    public String getPhoneNumber() {
+        return System.getenv("TWILIO_PHONE_NUMBER");
     }
 
     public boolean isConfigured() {
         return StringUtils.hasText(getAccountSid())
                 && StringUtils.hasText(getAuthToken())
-                && StringUtils.hasText(getVerifyServiceSid());
+                && StringUtils.hasText(getPhoneNumber());
     }
 }

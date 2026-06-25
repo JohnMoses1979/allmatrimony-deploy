@@ -2,9 +2,13 @@ package com.allmatrimony.backend.service;
 
 import com.allmatrimony.backend.config.TwilioProperties;
 import com.twilio.Twilio;
-import com.twilio.rest.verify.v2.service.Verification;
-import com.twilio.rest.verify.v2.service.VerificationCheck;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class TwilioSmsService implements SmsService {
@@ -12,90 +16,59 @@ public class TwilioSmsService implements SmsService {
     private final TwilioProperties twilioProperties;
     private boolean initialized = false;
 
+    private final Map<String, String> otpStore = new ConcurrentHashMap<>();
+
     public TwilioSmsService(TwilioProperties twilioProperties) {
         this.twilioProperties = twilioProperties;
     }
 
     @Override
     public void sendOtp(String phone, String otp) {
-        phone = formatPhone(phone);
-
         if (!isConfigured()) {
             throw new IllegalStateException("Twilio credentials are not configured.");
         }
 
         initTwilio();
 
-        try {
-            Verification verification = Verification.creator(
-                    twilioProperties.getVerifyServiceSid(),
-                    phone,
-                    "sms"
-            ).create();
+        String toPhone = toE164India(phone);
 
-            System.out.println("TWILIO OTP SENT STATUS = " + verification.getStatus());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
+        if (!StringUtils.hasText(toPhone)) {
+            throw new IllegalArgumentException("Phone number is required.");
         }
+
+        String finalOtp = StringUtils.hasText(otp)
+                ? otp
+                : String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
+
+        otpStore.put(toPhone, finalOtp);
+
+        Message.creator(
+                new PhoneNumber(toPhone),
+                new PhoneNumber(twilioProperties.getPhoneNumber()),
+                "Your All Matrimony OTP is " + finalOtp + ". Do not share this code."
+        ).create();
     }
 
     @Override
     public boolean verifyOtp(String phone, String otp) {
-        phone = formatPhone(phone);
+        String toPhone = toE164India(phone);
 
-        System.out.println("VERIFY PHONE = " + phone);
-        System.out.println("VERIFY OTP = " + otp);
-        System.out.println("VERIFY SERVICE = " + twilioProperties.getVerifyServiceSid());
-
-        if (!isConfigured()) {
-            throw new IllegalStateException("Twilio credentials are not configured.");
-        }
-
-        initTwilio();
-
-        try {
-            VerificationCheck check = VerificationCheck.creator(
-                    twilioProperties.getVerifyServiceSid()
-            )
-            .setTo(phone)
-            .setCode(otp.trim())
-            .create();
-
-            System.out.println("TWILIO VERIFY STATUS = " + check.getStatus());
-            return "approved".equals(check.getStatus());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!StringUtils.hasText(toPhone) || !StringUtils.hasText(otp)) {
             return false;
         }
+
+        String savedOtp = otpStore.get(toPhone);
+
+        if (savedOtp != null && savedOtp.equals(otp)) {
+            otpStore.remove(toPhone);
+            return true;
+        }
+
+        return false;
     }
 
-    private String formatPhone(String phone) {
-        if (phone == null) {
-            return null;
-        }
-
-        phone = phone.trim();
-
-        if (phone.startsWith("+")) {
-            return phone;
-        }
-
-        if (phone.length() == 10) {
-            return "+91" + phone;
-        }
-
-        return phone;
-    }
-
-    @Override
     public boolean isConfigured() {
-        return twilioProperties.getAccountSid() != null
-                && !twilioProperties.getAccountSid().isBlank()
-                && twilioProperties.getAuthToken() != null
-                && !twilioProperties.getAuthToken().isBlank()
-                && twilioProperties.getVerifyServiceSid() != null
-                && !twilioProperties.getVerifyServiceSid().isBlank();
+        return twilioProperties.isConfigured();
     }
 
     private void initTwilio() {
@@ -106,5 +79,29 @@ public class TwilioSmsService implements SmsService {
             );
             initialized = true;
         }
+    }
+
+    private String toE164India(String phone) {
+        if (phone == null) {
+            return null;
+        }
+
+        String trimmed = phone.trim();
+
+        if (trimmed.startsWith("+")) {
+            return trimmed;
+        }
+
+        String digits = trimmed.replaceAll("\\D", "");
+
+        if (digits.length() == 10) {
+            return "+91" + digits;
+        }
+
+        if (digits.length() == 12 && digits.startsWith("91")) {
+            return "+" + digits;
+        }
+
+        return trimmed;
     }
 }
