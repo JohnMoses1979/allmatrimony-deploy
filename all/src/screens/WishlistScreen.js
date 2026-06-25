@@ -2,11 +2,11 @@ import React from "react";
 import {
   SafeAreaView,
   ScrollView,
-  Text,
   StyleSheet,
   View,
   TouchableOpacity,
 } from "react-native";
+import Text from "../components/AutoText";
 import { COLORS } from "../constants/colors";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";

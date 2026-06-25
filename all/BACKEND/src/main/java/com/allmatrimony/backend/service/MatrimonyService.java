@@ -61,6 +61,14 @@ public class MatrimonyService {
         return ApiResponse.success("Profile loaded.", mapUser(user));
     }
 
+    @Transactional
+    public ApiResponse updatePreferredLanguage(Long userId, String preferredLanguage) {
+        User user = getUser(userId);
+        user.setPreferredLanguage(normalizeLanguagePreference(preferredLanguage));
+        userRepository.save(user);
+        return ApiResponse.success("Language updated.", mapUser(user));
+    }
+
     public ApiResponse getProfileForViewer(Long viewerUserId, Long targetUserId) {
         User viewer = getUser(viewerUserId);
         User target = getUser(targetUserId);
@@ -79,10 +87,11 @@ public class MatrimonyService {
     }
 
     public ApiResponse getApprovedProfiles() {
-        return getApprovedProfiles(null, null, null, null, null, null, null, null);
+        return getApprovedProfiles(null, null, null, null, null, null, null, null, null);
     }
 
     public ApiResponse getApprovedProfiles(
+            Long viewerUserId,
             String gender,
             String name,
             Integer minAge,
@@ -92,9 +101,13 @@ public class MatrimonyService {
             String education,
             String job
     ) {
+        String effectiveGender = resolveApprovedProfilesGender(viewerUserId, gender);
+        Long currentViewerId = viewerUserId;
+
         List<Map<String, Object>> profiles = userRepository.findAll().stream()
                 .filter(user -> "Approved".equalsIgnoreCase(user.getApprovalStatus()))
-                .filter(user -> matchesGender(user, gender))
+                .filter(user -> currentViewerId == null || !currentViewerId.equals(user.getId()))
+                .filter(user -> matchesGender(user, effectiveGender))
                 .filter(user -> matchesName(user, name))
                 .filter(user -> matchesAge(user, minAge, maxAge))
                 .filter(user -> matchesRegion(user, region))
@@ -384,6 +397,7 @@ public class MatrimonyService {
         user.setPartnerEducation(valueOrDefault(request.getPartnerEducation(), user.getPartnerEducation()));
         user.setImage(valueOrDefault(request.getImage(), user.getImage()));
         user.setHabits(valueOrDefault(request.getHabits(), user.getHabits()));
+        user.setPreferredLanguage(normalizeLanguagePreference(valueOrDefault(request.getPreferredLanguage(), user.getPreferredLanguage())));
         user.setProfileCompletion(request.getProfileCompletion() == null ? user.getProfileCompletion() : request.getProfileCompletion());
     }
 
@@ -528,6 +542,14 @@ public class MatrimonyService {
         return value == null || value.isBlank();
     }
 
+    private String normalizeLanguagePreference(String value) {
+        if (value == null) {
+            return "en";
+        }
+
+        return value.trim().toLowerCase().startsWith("te") ? "te" : "en";
+    }
+
     private Map<String, Object> mapUser(User user) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("id", user.getId());
@@ -558,6 +580,7 @@ public class MatrimonyService {
         data.put("partnerEducation", user.getPartnerEducation());
         data.put("image", user.getImage());
         data.put("habits", user.getHabits());
+        data.put("preferredLanguage", normalizeLanguagePreference(user.getPreferredLanguage()));
         data.put("phoneVerified", user.isPhoneVerified());
         data.put("approvalStatus", user.getApprovalStatus());
         data.put("verificationStatus", user.getVerificationStatus());
@@ -658,6 +681,27 @@ public class MatrimonyService {
         return equalsIgnoreCase(userGender, normalizedGender);
     }
 
+    private String resolveApprovedProfilesGender(Long viewerUserId, String requestedGender) {
+        if (viewerUserId != null) {
+            return resolveOppositeGender(getUser(viewerUserId).getGender());
+        }
+
+        return requestedGender;
+    }
+
+    private String resolveOppositeGender(String value) {
+        String normalizedGender = normalizeGender(value);
+
+        if ("Bride".equalsIgnoreCase(normalizedGender)) {
+            return "Groom";
+        }
+
+        if ("Groom".equalsIgnoreCase(normalizedGender)) {
+            return "Bride";
+        }
+
+        return normalizedGender;
+    }
     private boolean matchesName(User user, String name) {
         if (isBlank(name)) {
             return true;
@@ -878,3 +922,8 @@ public class MatrimonyService {
         return data;
     }
 }
+
+
+
+
+

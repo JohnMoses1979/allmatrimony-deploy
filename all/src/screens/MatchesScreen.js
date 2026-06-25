@@ -4,13 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  Text,
   TouchableOpacity,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../constants/colors";
+import Text from "../components/AutoText";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";
 import ProfileCard from "../components/ProfileCard";

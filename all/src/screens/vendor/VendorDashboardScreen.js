@@ -1,8 +1,9 @@
 import React, {useContext, useState} from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image,
+  View, StyleSheet, ScrollView, Image,
   TouchableOpacity, Alert, StatusBar, RefreshControl,
 } from 'react-native';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import {ProfileContext} from '../../context/ProfileContext';

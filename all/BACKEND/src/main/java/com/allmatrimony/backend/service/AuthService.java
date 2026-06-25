@@ -33,8 +33,10 @@ public class AuthService {
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+
     private static final Pattern PHONE_PATTERN =
             Pattern.compile("^[6-9]\\d{9}$");
+
     private static final Pattern OTP_PATTERN =
             Pattern.compile("^\\d{6}$");
 
@@ -287,6 +289,7 @@ public class AuthService {
 
     private Map<String, Object> buildUserData(User user) {
         Map<String, Object> userData = new LinkedHashMap<>();
+
         userData.put("id", user.getId());
         userData.put("name", user.getName());
         userData.put("email", user.getEmail());
@@ -318,13 +321,27 @@ public class AuthService {
         userData.put("phoneVerified", user.isPhoneVerified());
         userData.put("approvalStatus", user.getApprovalStatus());
         userData.put("verificationStatus", user.getVerificationStatus());
-        userData.put("premiumPlan", user.getPremiumPlan() == null || user.getPremiumPlan().isBlank() ? "FREE" : user.getPremiumPlan());
-        userData.put("premiumStatus", user.getPremiumStatus() == null || user.getPremiumStatus().isBlank() ? "ACTIVE" : user.getPremiumStatus());
+        userData.put(
+                "premiumPlan",
+                user.getPremiumPlan() == null || user.getPremiumPlan().isBlank()
+                        ? "FREE"
+                        : user.getPremiumPlan()
+        );
+        userData.put(
+                "premiumStatus",
+                user.getPremiumStatus() == null || user.getPremiumStatus().isBlank()
+                        ? "ACTIVE"
+                        : user.getPremiumStatus()
+        );
         userData.put("premiumOrderId", user.getPremiumOrderId());
         userData.put("premiumPaymentId", user.getPremiumPaymentId());
-        userData.put("premiumActivatedAt", user.getPremiumActivatedAt() == null ? null : user.getPremiumActivatedAt().toString());
+        userData.put(
+                "premiumActivatedAt",
+                user.getPremiumActivatedAt() == null ? null : user.getPremiumActivatedAt().toString()
+        );
         userData.put("wishlistProfileIds", parseWishlistProfileIds(user));
         userData.put("profileCompletion", user.getProfileCompletion());
+
         return userData;
     }
 

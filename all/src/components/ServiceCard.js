@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Asset } from "expo-asset";
 import { Ionicons } from "@expo/vector-icons";
 
+import Text from "./AutoText";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
 import {
@@ -39,6 +40,7 @@ export default function ServiceCard({ item, onPress }) {
       <Image
         source={{ uri: imageUri }}
         style={styles.image}
+        resizeMode="cover"
         onError={() => setImageUri(DEFAULT_SERVICE_IMAGE)}
       />
 
@@ -46,13 +48,20 @@ export default function ServiceCard({ item, onPress }) {
         <View
           style={[
             styles.categoryPill,
-            { backgroundColor: appTheme?.mode === "dark" ? "#163126" : COLORS.softGreen },
+            {
+              backgroundColor:
+                appTheme?.mode === "dark" ? "#163126" : COLORS.softGreen,
+            },
           ]}
         >
           <Text style={styles.category}>{categoryLabel}</Text>
         </View>
 
-        <Text style={[styles.title, { color: appTheme?.text || COLORS.text }]}>
+        <Text
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={[styles.title, { color: appTheme?.text || COLORS.text }]}
+        >
           {titleLabel}
         </Text>
 
@@ -98,6 +107,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 14,
+    minHeight: 126,
   },
   categoryPill: {
     alignSelf: "flex-start",
@@ -116,6 +126,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "900",
     color: COLORS.text,
+    lineHeight: 22,
+    minHeight: 44,
   },
   row: {
     flexDirection: "row",

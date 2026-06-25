@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
-import { ScrollView, Text, View, StyleSheet, Image } from "react-native";
+import { ScrollView, View, StyleSheet, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import Text from "../../components/AdminText";
 import Header from "../../components/Header";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";

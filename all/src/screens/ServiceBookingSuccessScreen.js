@@ -1,8 +1,9 @@
 import React from "react";
-import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import Header from "../components/Header";
+import Text from "../components/AutoText";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
 

@@ -3,8 +3,6 @@ import {
   SafeAreaView,
   ScrollView,
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -12,6 +10,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import Header from "../components/Header";
+import Text from "../components/AutoText";
+import TextInput from "../components/AutoTranslateTextInput";
 import PrimaryButton from "../components/PrimaryButton";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";

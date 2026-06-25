@@ -1,8 +1,10 @@
-import React from "react";
+﻿import React from "react";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { MatrimonyProvider } from "./src/context/MatrimonyContext";
+import "./src/I18n/I18n";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { useMatrimony } from "./src/context/MatrimonyContext";
+import { VendorLanguageProvider } from "./src/context/VendorLanguageContext";
 
 function AppShell() {
   const { appTheme } = useMatrimony();
@@ -27,7 +29,9 @@ function AppShell() {
 export default function App() {
   return (
     <MatrimonyProvider>
-      <AppShell />
+      <VendorLanguageProvider>
+        <AppShell />
+      </VendorLanguageProvider>
     </MatrimonyProvider>
   );
 }

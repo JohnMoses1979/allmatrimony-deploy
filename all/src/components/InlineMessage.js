@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
+import Text from "./AutoText";
 
 const MESSAGE_STYLES = {
   success: {

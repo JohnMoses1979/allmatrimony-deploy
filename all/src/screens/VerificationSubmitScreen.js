@@ -7,8 +7,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -17,6 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 
 import Header from "../components/Header";
+import Text from "../components/AutoText";
+import TextInput from "../components/AutoTranslateTextInput";
 import InlineMessage from "../components/InlineMessage";
 import PrimaryButton from "../components/PrimaryButton";
 import { API_BASE_URL, toApiAssetUrl } from "../config/api";

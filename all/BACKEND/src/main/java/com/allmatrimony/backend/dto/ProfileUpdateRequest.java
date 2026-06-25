@@ -28,6 +28,7 @@ public class ProfileUpdateRequest {
     private String partnerEducation;
     private String image;
     private String habits;
+    private String preferredLanguage;
     private Integer profileCompletion;
 
     public String getName() { return name; }
@@ -84,6 +85,11 @@ public class ProfileUpdateRequest {
     public void setImage(String image) { this.image = image; }
     public String getHabits() { return habits; }
     public void setHabits(String habits) { this.habits = habits; }
+    public String getPreferredLanguage() { return preferredLanguage; }
+    public void setPreferredLanguage(String preferredLanguage) { this.preferredLanguage = preferredLanguage; }
     public Integer getProfileCompletion() { return profileCompletion; }
     public void setProfileCompletion(Integer profileCompletion) { this.profileCompletion = profileCompletion; }
 }
+
+
+

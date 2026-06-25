@@ -3,7 +3,6 @@ import {
   Alert,
   ScrollView,
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -12,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import Text from "../../components/AdminText";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";
 

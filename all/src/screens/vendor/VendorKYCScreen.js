@@ -1,10 +1,8 @@
 import React, {useContext, useState} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   Alert,
   Image,
@@ -12,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import TextInput from '../../components/VendorTextInput';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import {ProfileContext} from '../../context/ProfileContext';
@@ -142,7 +142,24 @@ export default function VendorKYCScreen({navigation}) {
       Alert.alert('Bank Details', 'Please fill Bank Name, Account Number and IFSC, or leave all bank fields empty.');
       return;
     }
-
+    if (bankName.trim()) {
+      if (!/^[A-Za-z0-9 .&()-]{2,80}$/.test(bankName.trim())) {
+        Alert.alert('Bank Details', 'Please enter a valid bank name.');
+        return;
+      }
+      if (!/^\d{9,18}$/.test(accountNo.trim())) {
+        Alert.alert('Bank Details', 'Please enter a valid account number with 9 to 18 digits.');
+        return;
+      }
+      if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc.trim().toUpperCase())) {
+        Alert.alert('Bank Details', 'Please enter a valid IFSC code in the format ABCD0123456.');
+        return;
+      }
+    }
+    if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) {
+      Alert.alert('Address', 'Please enter a valid 6-digit pincode.');
+      return;
+    }
     setLoading(true);
     setTimeout(() => {
       ctx?.updateVendorKyc?.(vendor.id, {
@@ -262,18 +279,18 @@ export default function VendorKYCScreen({navigation}) {
           <Label text="Bank Name" />
           <Field value={bankName} onChangeText={setBankName} placeholder="e.g. State Bank of India" />
 
-          <Label text="Account Number" />
+          <Label text="Account Number (9-18 digits)" />
           <Field
             value={accountNo}
-            onChangeText={setAccountNo}
+            onChangeText={(text) => setAccountNo(text.replace(/\D/g, '').slice(0, 18))}
             placeholder="Account number"
             keyboardType="numeric"
           />
 
-          <Label text="IFSC Code" />
+          <Label text="IFSC Code (11 chars)" />
           <Field
             value={ifsc}
-            onChangeText={text => setIfsc(text.toUpperCase())}
+            onChangeText={(text) => setIfsc(text.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11))}
             placeholder="e.g. SBIN0001234"
             autoCapitalize="characters"
             maxLength={11}
@@ -356,3 +373,6 @@ const styles = StyleSheet.create({
   saveBtn: {height: 58, borderRadius: 18, backgroundColor: COLORS.primary, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginHorizontal: 16, marginTop: 4, marginBottom: 20},
   saveBtnText: {color: '#fff', fontWeight: 'bold', fontSize: 16},
 });
+
+
+

@@ -5,12 +5,11 @@ import com.allmatrimony.backend.dto.ChatMessageCreateRequest;
 import com.allmatrimony.backend.dto.InterestCreateRequest;
 import com.allmatrimony.backend.dto.InterestStatusUpdateRequest;
 import com.allmatrimony.backend.dto.ProfileUpdateRequest;
-import com.allmatrimony.backend.dto.WishlistUpdateRequest;
 import com.allmatrimony.backend.dto.VerificationSubmitRequest;
+import com.allmatrimony.backend.dto.WishlistUpdateRequest;
 import com.allmatrimony.backend.service.InterestChatService;
 import com.allmatrimony.backend.service.MatrimonyService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,6 +26,7 @@ public class UserController {
 
     @GetMapping("/approved-profiles")
     public ResponseEntity<ApiResponse> getApprovedProfiles(
+            @RequestParam(required = false) Long viewerUserId,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Integer minAge,
@@ -38,6 +38,7 @@ public class UserController {
     ) {
         return ResponseEntity.ok(
                 matrimonyService.getApprovedProfiles(
+                        viewerUserId,
                         gender,
                         name,
                         minAge,
@@ -53,6 +54,14 @@ public class UserController {
     @GetMapping("/{userId}/profile")
     public ResponseEntity<ApiResponse> getProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(matrimonyService.getUserProfile(userId));
+    }
+
+    @PatchMapping("/{userId}/language")
+    public ResponseEntity<ApiResponse> updateLanguage(
+            @PathVariable Long userId,
+            @RequestBody LanguageUpdateRequest request
+    ) {
+        return ResponseEntity.ok(matrimonyService.updatePreferredLanguage(userId, request == null ? null : request.getPreferredLanguage()));
     }
 
     @GetMapping("/{userId}/wishlist")
@@ -150,4 +159,17 @@ public class UserController {
     public ResponseEntity<ApiResponse> markNotificationReadPost(@PathVariable Long notificationId) {
         return ResponseEntity.ok(matrimonyService.markNotificationRead(notificationId));
     }
+
+    public static class LanguageUpdateRequest {
+        private String preferredLanguage;
+
+        public String getPreferredLanguage() {
+            return preferredLanguage;
+        }
+
+        public void setPreferredLanguage(String preferredLanguage) {
+            this.preferredLanguage = preferredLanguage;
+        }
+    }
 }
+

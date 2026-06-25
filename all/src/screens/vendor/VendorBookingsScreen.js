@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl} from 'react-native';
+import {View, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl} from 'react-native';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
 import {ProfileContext} from '../../context/ProfileContext';
@@ -252,22 +253,22 @@ const styles = StyleSheet.create({
   refreshBtn: {width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', marginLeft: 10},
   headerTitle: {color: '#fff', fontSize: 22, fontWeight: 'bold'},
   headerSub: {color: '#DDEAE5', fontSize: 12, marginTop: 3, lineHeight: 17},
-  revenueSummary: {flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 14, borderRadius: 18, borderWidth: 1, borderColor: COLORS.border, paddingVertical: 14},
+  revenueSummary: {flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 14, marginBottom: 6, borderRadius: 18, borderWidth: 1, borderColor: COLORS.border, paddingVertical: 14},
   revenueItem: {flex: 1, alignItems: 'center', paddingHorizontal: 6},
   revenueValue: {fontSize: 17, fontWeight: 'bold', color: COLORS.primary},
   revenueLabel: {fontSize: 10, color: COLORS.muted, marginTop: 3, textAlign: 'center'},
   revenueDivider: {width: 1, backgroundColor: COLORS.border},
-  blockedDatesBox: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#E8F5E9', marginHorizontal: 16, marginTop: 14, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: '#A5D6A7'},
+  blockedDatesBox: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: '#E8F5E9', marginHorizontal: 16, marginTop: 8, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: '#A5D6A7'},
   blockedDatesText: {flex: 1, color: '#2E7D32', fontSize: 12, fontWeight: 'bold', lineHeight: 18},
   tabsScroll: {
     minHeight: 60,
-    marginTop: 16,
-    marginBottom: 18,
+    marginTop: 6,
+    marginBottom: 12,
     marginHorizontal: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 999,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     zIndex: 2,
-    elevation: 2,
+    elevation: 0,
     overflow: 'visible',
   },
   tabsContent: {
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
   bookingCard: {
     backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginTop: 16,
+    marginTop: 6,
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
@@ -338,3 +339,4 @@ const styles = StyleSheet.create({
   waitingBox: {marginTop: 12, borderRadius: 12, backgroundColor: '#F3E5F5', padding: 11, flexDirection: 'row', alignItems: 'flex-start', gap: 8},
   waitingText: {flex: 1, color: '#6A1B9A', fontSize: 12, lineHeight: 18, fontWeight: '600'},
 });
+

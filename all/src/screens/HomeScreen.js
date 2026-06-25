@@ -1,7 +1,6 @@
-import React, { useCallback } from "react";
+﻿import React, { useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   SafeAreaView,
   ScrollView,
@@ -13,17 +12,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { COLORS } from "../constants/colors";
+import Text from "../components/AutoText";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";
 import { useMatrimony } from "../context/MatrimonyContext";
 import ProfileCard from "../components/ProfileCard";
 import PrimaryButton from "../components/PrimaryButton";
-import { getVipLabel } from "../constants/localization";
+import { createTextHelper, getVipLabel } from "../constants/localization";
 
 export default function HomeScreen({ navigation }) {
   const { profiles, addToWishlist, services, appTheme, language, loadApprovedProfiles } = useMatrimony();
   const t = getStrings(language).home;
   const vipLabel = getVipLabel(language);
+
+  const tr = createTextHelper(language);
+  const bookServicesTitle = tr("Book Wedding Services", "వివాహ సేవలను బుక్ చేయండి");
+  const bookServicesText = tr("Halls, photography, catering, makeup and decoration.", "హాళ్లు, ఫోటోగ్రఫీ, కేటరింగ్, మేకప్ మరియు డెకరేషన్.");
 
   useFocusEffect(
     useCallback(() => {
@@ -188,8 +192,8 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={{ flex: 1 }}>
-            <Text style={styles.serviceTitle}>{t.bookServices}</Text>
-            <Text style={styles.serviceText}>{t.bookServicesText}</Text>
+            <Text style={styles.serviceTitle}>{bookServicesTitle}</Text>
+            <Text style={styles.serviceText}>{bookServicesText}</Text>
           </View>
 
           <TouchableOpacity
@@ -598,3 +602,4 @@ const robotStyles = StyleSheet.create({
     opacity: 0.72,
   },
 });
+

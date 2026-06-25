@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Modal, KeyboardAvoidingView, Platform} from 'react-native';
+import {View, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, KeyboardAvoidingView, Platform} from 'react-native';
+import TextInput from '../../components/VendorTextInput';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {ProfileContext} from '../../context/ProfileContext';
 import COLORS from '../../constants/colors';

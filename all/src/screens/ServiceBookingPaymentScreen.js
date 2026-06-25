@@ -5,7 +5,6 @@ import {
   Platform,
   SafeAreaView,
   StyleSheet,
-  Text,
   TextInput,
   ScrollView,
   TouchableOpacity,
@@ -15,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 
 import Header from "../components/Header";
+import Text from "../components/AutoText";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,11 +17,13 @@ import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
 
 const formatPrice = (amount = 0) => `Rs. ${(amount / 100).toFixed(0)}`;
+
 const planRank = {
   FREE: 0,
   SILVER: 1,
   GOLD: 2,
 };
+
 const fallbackCheckoutPlans = {
   SILVER: {
     name: "Silver",
@@ -35,6 +37,15 @@ const fallbackCheckoutPlans = {
   },
 };
 
+function FeatureRow({ text }) {
+  return (
+    <View style={styles.featureRow}>
+      <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
+      <Text style={styles.featureRowText}>{text}</Text>
+    </View>
+  );
+}
+
 export default function PaymentCheckoutScreen({ navigation, route }) {
   const {
     currentUser,
@@ -43,23 +54,27 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     createPremiumOrder,
     verifyPremiumPayment,
     appTheme,
+    language,
   } = useMatrimony();
+
+  const isTelugu = language === "te";
+  const t = (english, telugu) => (isTelugu ? telugu : english);
+
   const planCode = String(route?.params?.planCode || "SILVER").toUpperCase();
-  const fallbackPlan =
-    route?.params?.plan || fallbackCheckoutPlans[planCode] || null;
+  const fallbackPlan = route?.params?.plan || fallbackCheckoutPlans[planCode] || null;
   const ownerId = String(route?.params?.ownerId || currentUser?.id || "");
-  const activePlan = String(
-    currentUser?.premiumPlan || myProfile?.premiumPlan || "FREE"
-  ).toUpperCase();
+  const activePlan = String(currentUser?.premiumPlan || myProfile?.premiumPlan || "FREE").toUpperCase();
 
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("Preparing secure Razorpay checkout...");
+  const [completed, setCompleted] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(
+    t("Preparing secure Razorpay checkout...", "సురక్షిత Razorpay చెకౌట్ సిద్ధం చేస్తున్నాం...")
+  );
   const [webScriptReady, setWebScriptReady] = useState(Platform.OS !== "web");
 
-  const showCompletedState = (completedPlan = planCode) => {
+  const markCompleted = (completedPlan = planCode) => {
     const completedFallbackPlan =
       fallbackPlan || fallbackCheckoutPlans[completedPlan] || fallbackCheckoutPlans[planCode];
 
@@ -75,10 +90,18 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
       description:
         completedFallbackPlan?.description ||
         fallbackCheckoutPlans[completedPlan]?.description ||
-        `${completedPlan} membership is already active.`,
+        t(
+          `${completedPlan} membership is already active.`,
+          `${completedPlan} మెంబర్‌షిప్ ఇప్పటికే యాక్టివ్‌గా ఉంది.`
+        ),
     });
-    setPaymentCompleted(true);
-    setStatusMessage(`${completedPlan} membership is already active.`);
+    setCompleted(true);
+    setStatusMessage(
+      t(
+        `${completedPlan} membership is already active.`,
+        `${completedPlan} మెంబర్‌షిప్ ఇప్పటికే యాక్టివ్‌గా ఉంది.`
+      )
+    );
     setLoading(false);
   };
 
@@ -86,14 +109,22 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     let active = true;
 
     const bootstrapOrder = async () => {
-      setPaymentCompleted(false);
+      setCompleted(false);
 
       if (!currentUser?.id || String(ownerId) !== String(currentUser.id)) {
         setLoading(false);
-        setStatusMessage("Premium checkout is only available for your own logged-in account.");
+        setStatusMessage(
+          t(
+            "Premium checkout is only available for your own logged-in account.",
+            "ప్రీమియం చెకౌట్ మీ స్వంత లాగిన్ ఖాతాకు మాత్రమే అందుబాటులో ఉంటుంది."
+          )
+        );
         Alert.alert(
-          "Not Allowed",
-          "You can only buy premium for the account that is currently logged in.",
+          t("Not Allowed", "అనుమతి లేదు"),
+          t(
+            "You can only buy premium for the account that is currently logged in.",
+            "ప్రస్తుతం లాగిన్ అయిన ఖాతాకు మాత్రమే మీరు ప్రీమియం కొనుగోలు చేయగలరు."
+          ),
           [
             {
               text: "OK",
@@ -105,10 +136,10 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
       }
 
       setLoading(true);
-      setStatusMessage("Preparing secure Razorpay checkout...");
+      setStatusMessage(t("Preparing secure Razorpay checkout...", "సురక్షిత Razorpay చెకౌట్ సిద్ధం చేస్తున్నాం..."));
 
       if ((planRank[activePlan] ?? 0) >= (planRank[planCode] ?? 0)) {
-        showCompletedState(planCode);
+        markCompleted(planCode);
         return;
       }
 
@@ -120,11 +151,8 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
 
       const latestPlan = String(latestPlans?.currentPlan || activePlan).toUpperCase();
 
-      if (
-        latestPlans?.success &&
-        (planRank[latestPlan] ?? 0) >= (planRank[planCode] ?? 0)
-      ) {
-        showCompletedState(planCode);
+      if (latestPlans?.success && (planRank[latestPlan] ?? 0) >= (planRank[planCode] ?? 0)) {
+        markCompleted(planCode);
         return;
       }
 
@@ -141,7 +169,9 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
           fallbackPlan,
         });
       } else {
-        setStatusMessage(result?.message || "Unable to create payment order.");
+        setStatusMessage(
+          result?.message || t("Unable to create payment order.", "చెల్లింపు ఆర్డర్ సృష్టించలేకపోయాం.")
+        );
       }
 
       setLoading(false);
@@ -161,6 +191,7 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     createPremiumOrder,
     fallbackPlan,
     navigation,
+    t,
   ]);
 
   useEffect(() => {
@@ -189,7 +220,12 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     const handleLoad = () => setWebScriptReady(true);
     const handleError = () => {
       setWebScriptReady(false);
-      setStatusMessage("Unable to load Razorpay checkout in browser.");
+      setStatusMessage(
+        t(
+          "Unable to load Razorpay checkout in browser.",
+          "బ్రౌజర్‌లో Razorpay చెకౌట్ లోడ్ చేయలేకపోయాం."
+        )
+      );
     };
 
     script.addEventListener("load", handleLoad);
@@ -203,7 +239,7 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
       script.removeEventListener("load", handleLoad);
       script.removeEventListener("error", handleError);
     };
-  }, []);
+  }, [isTelugu]);
 
   const checkoutHtml = useMemo(() => {
     if (!orderData?.orderId || !orderData?.keyId) {
@@ -287,11 +323,11 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
         </head>
         <body>
           <div class="card">
-            <div class="badge">Secure Razorpay Checkout</div>
-            <h1>${orderData.planName || planCode} Plan</h1>
+            <div class="badge">${t("Secure Razorpay Checkout", "సురక్షిత Razorpay చెకౌట్")}</div>
+            <h1>${orderData.planName || planCode} ${t("Plan", "ప్లాన్")}</h1>
             <p>${orderData.description || ""}</p>
             <div class="price">${formatPrice(orderData.amount)}</div>
-            <button id="pay-button">Pay Securely</button>
+            <button id="pay-button">${t("Pay Securely", "సురక్షితంగా చెల్లించండి")}</button>
           </div>
           <script>
             const options = ${JSON.stringify(options)};
@@ -326,7 +362,7 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
         </body>
       </html>
     `;
-  }, [orderData, planCode]);
+  }, [orderData, planCode, isTelugu]);
 
   const handleWebMessage = async (event) => {
     let message = null;
@@ -334,17 +370,19 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     try {
       message = JSON.parse(event?.nativeEvent?.data || "{}");
     } catch (error) {
-      setStatusMessage("Payment response could not be parsed.");
+      setStatusMessage(t("Payment response could not be parsed.", "చెల్లింపు ప్రతిస్పందనను చదవలేకపోయాము."));
       return;
     }
 
     if (message?.type === "dismiss") {
-      setStatusMessage("Payment popup was closed before completion.");
+      setStatusMessage(
+        t("Payment popup was closed before completion.", "చెల్లింపు పూర్తయ్యే ముందు పాప్‌అప్ మూసివేయబడింది.")
+      );
       return;
     }
 
     if (message?.type === "failure") {
-      setStatusMessage(message?.payload?.description || "Payment failed. Please try again.");
+      setStatusMessage(message?.payload?.description || t("Payment failed. Please try again.", "చెల్లింపు విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి."));
       return;
     }
 
@@ -353,7 +391,12 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     }
 
     setVerifying(true);
-    setStatusMessage("Verifying payment securely with backend...");
+    setStatusMessage(
+      t(
+        "Verifying payment securely with backend...",
+        "బ్యాక్‌ఎండ్ ద్వారా చెల్లింపును సురక్షితంగా ధృవీకరిస్తున్నాం..."
+      )
+    );
 
     const result = await verifyPremiumPayment?.({
       planCode,
@@ -365,12 +408,17 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     setVerifying(false);
 
     if (result?.success) {
-      setPaymentCompleted(true);
-      setStatusMessage(`${planCode} membership is active.`);
+      setCompleted(true);
+      setStatusMessage(
+        t(
+          `${planCode} membership is active on your account.`,
+          `${planCode} మెంబర్‌షిప్ మీ ఖాతాలో యాక్టివ్‌గా ఉంది.`
+        )
+      );
       return;
     }
 
-    setStatusMessage(result?.message || "Payment verification failed.");
+    setStatusMessage(result?.message || t("Payment verification failed.", "చెల్లింపు ధృవీకరణ విఫలమైంది."));
   };
 
   const handleWebCheckout = () => {
@@ -379,12 +427,17 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     }
 
     if (!orderData?.orderId) {
-      setStatusMessage("Payment order is not ready yet.");
+      setStatusMessage(t("Payment order is not ready yet.", "చెల్లింపు ఆర్డర్ ఇంకా సిద్ధంగా లేదు."));
       return;
     }
 
     if (typeof window === "undefined" || typeof window.Razorpay !== "function") {
-      setStatusMessage("Razorpay checkout is still loading. Please try again.");
+      setStatusMessage(
+        t(
+          "Razorpay checkout is still loading. Please try again.",
+          "Razorpay చెకౌట్ ఇంకా లోడ్ అవుతోంది. దయచేసి మళ్లీ ప్రయత్నించండి."
+        )
+      );
       return;
     }
 
@@ -401,7 +454,12 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
       },
       modal: {
         ondismiss: () => {
-          setStatusMessage("Payment popup was closed before completion.");
+          setStatusMessage(
+            t(
+              "Payment popup was closed before completion.",
+              "చెల్లింపు పూర్తయ్యే ముందు పాప్‌అప్ మూసివేయబడింది."
+            )
+          );
         },
       },
       handler: (response) =>
@@ -429,11 +487,24 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
     razorpay.open();
   };
 
+  const checkoutButtonLabel = verifying
+    ? t("Verifying payment...", "చెల్లింపును ధృవీకరిస్తున్నాం...")
+    : webScriptReady
+    ? t("Pay With Razorpay", "Razorpay తో చెల్లించండి")
+    : t("Loading Razorpay...", "Razorpay లోడ్ అవుతోంది...");
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: appTheme?.bg || COLORS.bg }]}>
       <Header
-        title="Secure Payment"
-        subtitle={`${planCode} membership checkout`}
+        title={t("Secure Payment", "సురక్షిత చెల్లింపు")}
+        subtitle={
+          orderData
+            ? `${planCode} ${t("membership checkout", "మెంబర్‌షిప్ చెకౌట్")}`
+            : t(
+                "Choose the membership plan you want to activate.",
+                "మీరు యాక్టివేట్ చేయాలనుకునే మెంబర్‌షిప్ ప్లాన్‌ను ఎంచుకోండి."
+              )
+        }
         navigation={navigation}
         showBack={true}
         showNotification={false}
@@ -447,21 +518,22 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.summaryTitle}>
-              {orderData?.planName || fallbackPlan?.name || planCode} Upgrade
+              {orderData?.planName || fallbackPlan?.name || planCode} {t("Upgrade", "అప్‌గ్రేడ్")}
             </Text>
             <Text style={styles.summaryText}>
-              {orderData?.description || fallbackPlan?.description || "Secure payment powered by Razorpay."}
+              {orderData?.description || fallbackPlan?.description || t("Secure payment powered by Razorpay.", "Razorpay ద్వారా సురక్షిత చెల్లింపు.")}
             </Text>
           </View>
-          <Text style={styles.summaryAmount}>
-            {formatPrice(orderData?.amount || fallbackPlan?.amount || 0)}
-          </Text>
+          <Text style={styles.summaryAmount}>{formatPrice(orderData?.amount || fallbackPlan?.amount || 0)}</Text>
         </View>
 
         <View style={styles.noteRow}>
           <Ionicons name="shield-checkmark-outline" size={17} color={COLORS.secondary} />
           <Text style={styles.noteText}>
-            Backend creates the order first and verifies the signature before your plan is activated.
+            {t(
+              "Backend creates the order first and verifies the signature before your plan is activated.",
+              "బ్యాక్‌ఎండ్ ముందుగా ఆర్డర్ సృష్టించి, సంతకం ధృవీకరించిన తర్వాతే మీ ప్లాన్ యాక్టివ్ అవుతుంది."
+            )}
           </Text>
         </View>
       </View>
@@ -471,72 +543,71 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.statusText}>{statusMessage}</Text>
         </View>
-      ) : paymentCompleted || orderData?.orderId ? (
-        paymentCompleted || Platform.OS === "web" ? (
-          <View style={styles.webCard}>
-            <View style={styles.browserPreview}>
-              <View style={styles.browserDots}>
-                <View style={[styles.browserDot, { backgroundColor: "#F87171" }]} />
-                <View style={[styles.browserDot, { backgroundColor: "#FBBF24" }]} />
-                <View style={[styles.browserDot, { backgroundColor: "#34D399" }]} />
-              </View>
-              <Text style={styles.browserUrl}>checkout.razorpay.com</Text>
+      ) : !orderData?.orderId ? (
+        <View style={styles.centerBox}>
+          <Ionicons name="alert-circle-outline" size={34} color={COLORS.danger} />
+          <Text style={styles.statusText}>{statusMessage}</Text>
+        </View>
+      ) : Platform.OS === "web" || completed ? (
+        <View style={styles.webCard}>
+          <View style={styles.browserPreview}>
+            <View style={styles.browserDots}>
+              <View style={[styles.browserDot, { backgroundColor: "#F87171" }]} />
+              <View style={[styles.browserDot, { backgroundColor: "#FBBF24" }]} />
+              <View style={[styles.browserDot, { backgroundColor: "#34D399" }]} />
             </View>
-
-            <View style={styles.checkoutHero}>
-              <Text style={styles.checkoutBadge}>Live-style Secure Checkout</Text>
-              <Text style={styles.checkoutTitle}>
-                {orderData?.planName || fallbackPlan?.name || planCode} Membership
-              </Text>
-              <Text style={styles.checkoutDescription}>
-                {orderData?.description || fallbackPlan?.description || "Secure payment powered by Razorpay."}
-              </Text>
-              <Text style={styles.checkoutAmount}>
-                {formatPrice(orderData?.amount || fallbackPlan?.amount || 0)}
-              </Text>
-            </View>
-
-            <View style={styles.featureList}>
-              <FeatureRow text="Backend-created Razorpay order" />
-              <FeatureRow text="Server-side payment signature verification" />
-              <FeatureRow
-                text={
-                  paymentCompleted
-                    ? `${planCode} access is active on your account`
-                    : `${planCode} access activates after successful payment`
-                }
-              />
-            </View>
-
-            {paymentCompleted ? (
-              <TouchableOpacity
-                style={[styles.webCheckoutBtn, styles.completedBtn]}
-                onPress={() => navigation.replace("Premium", { ownerId })}
-              >
-                <Ionicons name="checkmark-circle" size={19} color={COLORS.white} />
-                <Text style={styles.webCheckoutBtnText}>Completed</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[
-                  styles.webCheckoutBtn,
-                  (!webScriptReady || verifying) && styles.webCheckoutBtnDisabled,
-                ]}
-                onPress={handleWebCheckout}
-                disabled={!webScriptReady || verifying}
-              >
-                <Ionicons name="lock-closed" size={18} color={COLORS.white} />
-                <Text style={styles.webCheckoutBtnText}>
-                  {verifying
-                    ? "Verifying Payment..."
-                    : webScriptReady
-                      ? "Pay With Razorpay"
-                      : "Loading Razorpay..."}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <Text style={styles.browserUrl}>checkout.razorpay.com</Text>
           </View>
-        ) : (
+
+          <View style={styles.checkoutHero}>
+            <Text style={styles.checkoutBadge}>{t("Live Secure Checkout", "సురక్షిత ప్రత్యక్ష చెకౌట్")}</Text>
+            <Text style={styles.checkoutTitle}>
+              {orderData?.planName || fallbackPlan?.name || planCode} {t("Membership", "మెంబర్‌షిప్")}
+            </Text>
+            <Text style={styles.checkoutDescription}>
+              {orderData?.description || fallbackPlan?.description || t("Secure payment powered by Razorpay.", "Razorpay ద్వారా సురక్షిత చెల్లింపు.")}
+            </Text>
+            <Text style={styles.checkoutAmount}>{formatPrice(orderData?.amount || fallbackPlan?.amount || 0)}</Text>
+          </View>
+
+          <View style={styles.featureList}>
+            <FeatureRow text={t("Backend-created Razorpay order", "బ్యాక్‌ఎండ్‌లో సృష్టించిన Razorpay ఆర్డర్")} />
+            <FeatureRow text={t("Server-side payment signature verification", "సర్వర్ వైపు చెల్లింపు సిగ్నేచర్ ధృవీకరణ")} />
+            <FeatureRow
+              text={
+                completed
+                  ? t(
+                      `${planCode} access is active on your account`,
+                      `${planCode} యాక్సెస్ మీ ఖాతాలో యాక్టివ్‌గా ఉంది`
+                    )
+                  : t(
+                      "Access activates after successful payment.",
+                      "విజయవంతమైన చెల్లింపు తర్వాత యాక్సెస్ యాక్టివ్ అవుతుంది."
+                    )
+              }
+            />
+          </View>
+
+          {completed ? (
+            <TouchableOpacity
+              style={[styles.webCheckoutBtn, styles.completedBtn]}
+              onPress={() => navigation.replace("Premium", { ownerId })}
+            >
+              <Ionicons name="checkmark-circle" size={19} color={COLORS.white} />
+              <Text style={styles.webCheckoutBtnText}>{t("Completed", "పూర్తయింది")}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.webCheckoutBtn, (!webScriptReady || verifying) && styles.webCheckoutBtnDisabled]}
+              onPress={handleWebCheckout}
+              disabled={!webScriptReady || verifying}
+            >
+              <Ionicons name="lock-closed" size={18} color={COLORS.white} />
+              <Text style={styles.webCheckoutBtnText}>{checkoutButtonLabel}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
         <View style={styles.webviewWrap}>
           <WebView
             originWhitelist={["*"]}
@@ -548,23 +619,19 @@ export default function PaymentCheckoutScreen({ navigation, route }) {
             renderLoading={() => (
               <View style={styles.centerBox}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.statusText}>Opening Razorpay checkout...</Text>
+                <Text style={styles.statusText}>
+                  {t("Opening Razorpay checkout...", "Razorpay చెకౌట్ తెరవబడుతోంది...")}
+                </Text>
               </View>
             )}
           />
-        </View>
-        )
-      ) : (
-        <View style={styles.centerBox}>
-          <Ionicons name="alert-circle-outline" size={34} color={COLORS.danger} />
-          <Text style={styles.statusText}>{statusMessage}</Text>
         </View>
       )}
 
       {verifying ? (
         <View style={styles.verifyingBar}>
           <ActivityIndicator size="small" color={COLORS.white} />
-          <Text style={styles.verifyingText}>Verifying payment...</Text>
+          <Text style={styles.verifyingText}>{t("Verifying payment...", "చెల్లింపును ధృవీకరిస్తున్నాం...")}</Text>
         </View>
       ) : null}
     </SafeAreaView>
@@ -770,11 +837,5 @@ const styles = StyleSheet.create({
   },
 });
 
-function FeatureRow({ text }) {
-  return (
-    <View style={styles.featureRow}>
-      <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-      <Text style={styles.featureRowText}>{text}</Text>
-    </View>
-  );
-}
+
+

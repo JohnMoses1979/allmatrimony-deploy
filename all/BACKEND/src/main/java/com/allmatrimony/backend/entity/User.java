@@ -80,6 +80,8 @@ public class User {
     @Column(length = 1000)
     private String habits;
 
+    private String preferredLanguage;
+
     @Column(nullable = false)
     private String passwordHash;
 
@@ -338,6 +340,14 @@ public class User {
         this.habits = habits;
     }
 
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }
@@ -434,3 +444,6 @@ public class User {
         this.createdAt = createdAt;
     }
 }
+
+
+

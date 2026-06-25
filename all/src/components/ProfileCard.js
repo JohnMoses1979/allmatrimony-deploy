@@ -1,13 +1,21 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
+import AutoText from "./AutoText";
 import {
   formatAgeLabel,
   translateGender,
 } from "../constants/localization";
+const Text = AutoText;
+
+const joinParts = (...parts) =>
+  parts
+    .map((part) => (part == null ? "" : String(part).trim()))
+    .filter(Boolean)
+    .join(" | ");
 
 export default function ProfileCard({ item, onPress, onWishlist, isWishlisted = false }) {
   const { appTheme, language } = useMatrimony();
@@ -60,13 +68,13 @@ export default function ProfileCard({ item, onPress, onWishlist, isWishlisted = 
           </TouchableOpacity>
         </View>
 
-        <Text style={[styles.detail, { color: appTheme?.text || COLORS.text }]}>
-          {item.community} | {item.location}
-        </Text>
-        <Text style={[styles.detail, { color: appTheme?.text || COLORS.text }]}>
-          {item.education} | {item.job}
-        </Text>
-        <Text style={styles.income}>{item.income}</Text>
+        <AutoText style={[styles.detail, { color: appTheme?.text || COLORS.text }]}>
+          {joinParts(item.community, item.location)}
+        </AutoText>
+        <AutoText style={[styles.detail, { color: appTheme?.text || COLORS.text }]}>
+          {joinParts(item.education, item.job)}
+        </AutoText>
+        <AutoText style={styles.income}>{item.income}</AutoText>
       </View>
     </TouchableOpacity>
   );
@@ -116,3 +124,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+

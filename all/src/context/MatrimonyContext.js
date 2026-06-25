@@ -7,6 +7,7 @@ import {
   formatServiceStatusMessage,
   getServiceCopy,
 } from "../constants/localization";
+import { changeAppLanguage, loadSavedLanguage, normalizeLanguage } from "../I18n/I18n";
 
 export const MatrimonyContext = createContext(null);
 
@@ -141,6 +142,9 @@ const SERVICE_IMAGE_BY_CATEGORY = {
   "wedding cake": SERVICE_IMAGES.s5,
   "honeymoon planning": SERVICE_IMAGES.s6,
   "wedding invitation design": SERVICE_IMAGES.s5,
+  "invitation card design & printing": SERVICE_IMAGES.s5,
+  "invitation card design": SERVICE_IMAGES.s5,
+  "invitation card": SERVICE_IMAGES.s5,
   "pastor booking": SERVICE_IMAGES.s12,
 };
 
@@ -162,7 +166,7 @@ const demoProfiles = [
     location: "Kochi, Kerala",
     education: "M.Tech",
     job: "Software Engineer",
-    income: "₹12 LPA",
+    income: "â‚¹12 LPA",
     height: "5'4",
     image: PROFILE_IMAGES.b1,
     photos: [PROFILE_IMAGES.b1],
@@ -179,7 +183,7 @@ const demoProfiles = [
     location: "Hyderabad, Telangana",
     education: "B.Tech",
     job: "UI Designer",
-    income: "₹8 LPA",
+    income: "â‚¹8 LPA",
     height: "5'3",
     image: PROFILE_IMAGES.b2,
     photos: [PROFILE_IMAGES.b2],
@@ -196,7 +200,7 @@ const demoProfiles = [
     location: "Calicut, Kerala",
     education: "BDS",
     job: "Dentist",
-    income: "₹9 LPA",
+    income: "â‚¹9 LPA",
     height: "5'3",
     image: PROFILE_IMAGES.b3,
     photos: [PROFILE_IMAGES.b3],
@@ -213,7 +217,7 @@ const demoProfiles = [
     location: "Bengaluru, Karnataka",
     education: "MBA",
     job: "HR Manager",
-    income: "₹10 LPA",
+    income: "â‚¹10 LPA",
     height: "5'5",
     image: PROFILE_IMAGES.b4,
     photos: [PROFILE_IMAGES.b4],
@@ -230,7 +234,7 @@ const demoProfiles = [
     location: "Kottayam, Kerala",
     education: "M.Sc Nursing",
     job: "Nurse",
-    income: "₹7 LPA",
+    income: "â‚¹7 LPA",
     height: "5'4",
     image: PROFILE_IMAGES.b5,
     photos: [PROFILE_IMAGES.b5],
@@ -247,7 +251,7 @@ const demoProfiles = [
     location: "Mumbai, Maharashtra",
     education: "B.Com",
     job: "Bank Executive",
-    income: "₹6 LPA",
+    income: "â‚¹6 LPA",
     height: "5'2",
     image: PROFILE_IMAGES.b6,
     photos: [PROFILE_IMAGES.b6],
@@ -264,7 +268,7 @@ const demoProfiles = [
     location: "Thrissur, Kerala",
     education: "B.Arch",
     job: "Architect",
-    income: "₹8.5 LPA",
+    income: "â‚¹8.5 LPA",
     height: "5'6",
     image: PROFILE_IMAGES.b7,
     photos: [PROFILE_IMAGES.b7],
@@ -281,7 +285,7 @@ const demoProfiles = [
     location: "Ahmedabad, Gujarat",
     education: "CA",
     job: "Chartered Accountant",
-    income: "₹14 LPA",
+    income: "â‚¹14 LPA",
     height: "5'4",
     image: PROFILE_IMAGES.b8,
     photos: [PROFILE_IMAGES.b8],
@@ -298,7 +302,7 @@ const demoProfiles = [
     location: "Chennai, Tamil Nadu",
     education: "MCA",
     job: "Software Developer",
-    income: "₹13 LPA",
+    income: "â‚¹13 LPA",
     height: "5'5",
     image: PROFILE_IMAGES.b9,
     photos: [PROFILE_IMAGES.b9],
@@ -315,7 +319,7 @@ const demoProfiles = [
     location: "Ernakulam, Kerala",
     education: "B.Pharm",
     job: "Pharmacist",
-    income: "₹6.5 LPA",
+    income: "â‚¹6.5 LPA",
     height: "5'3",
     image: PROFILE_IMAGES.b10,
     photos: [PROFILE_IMAGES.b10],
@@ -332,7 +336,7 @@ const demoProfiles = [
     location: "Pune, Maharashtra",
     education: "MBA",
     job: "Marketing Executive",
-    income: "₹7.5 LPA",
+    income: "â‚¹7.5 LPA",
     height: "5'4",
     image: PROFILE_IMAGES.b11,
     photos: [PROFILE_IMAGES.b11],
@@ -349,7 +353,7 @@ const demoProfiles = [
     location: "Coimbatore, Tamil Nadu",
     education: "M.A English",
     job: "Teacher",
-    income: "₹5.5 LPA",
+    income: "â‚¹5.5 LPA",
     height: "5'2",
     image: PROFILE_IMAGES.b12,
     photos: [PROFILE_IMAGES.b12],
@@ -366,7 +370,7 @@ const demoProfiles = [
     location: "Trivandrum, Kerala",
     education: "B.Tech",
     job: "QA Engineer",
-    income: "₹9 LPA",
+    income: "â‚¹9 LPA",
     height: "5'6",
     image: PROFILE_IMAGES.b13,
     photos: [PROFILE_IMAGES.b13],
@@ -383,7 +387,7 @@ const demoProfiles = [
     location: "Mysuru, Karnataka",
     education: "B.Sc",
     job: "Lab Technician",
-    income: "₹4.8 LPA",
+    income: "â‚¹4.8 LPA",
     height: "5'1",
     image: PROFILE_IMAGES.b14,
     photos: [PROFILE_IMAGES.b14],
@@ -400,7 +404,7 @@ const demoProfiles = [
     location: "Alappuzha, Kerala",
     education: "MBA Finance",
     job: "Finance Analyst",
-    income: "₹11 LPA",
+    income: "â‚¹11 LPA",
     height: "5'5",
     image: PROFILE_IMAGES.b15,
     photos: [PROFILE_IMAGES.b15],
@@ -418,7 +422,7 @@ const demoProfiles = [
     location: "Trivandrum, Kerala",
     education: "MBA",
     job: "Business Consultant",
-    income: "₹18 LPA",
+    income: "â‚¹18 LPA",
     height: "5'9",
     image: PROFILE_IMAGES.g1,
     photos: [PROFILE_IMAGES.g1],
@@ -435,7 +439,7 @@ const demoProfiles = [
     location: "Hyderabad, Telangana",
     education: "B.Tech",
     job: "Software Engineer",
-    income: "₹20 LPA",
+    income: "â‚¹20 LPA",
     height: "5'10",
     image: PROFILE_IMAGES.g2,
     photos: [PROFILE_IMAGES.g2],
@@ -452,7 +456,7 @@ const demoProfiles = [
     location: "Kochi, Kerala",
     education: "B.Com",
     job: "Entrepreneur",
-    income: "₹15 LPA",
+    income: "â‚¹15 LPA",
     height: "5'8",
     image: PROFILE_IMAGES.g3,
     photos: [PROFILE_IMAGES.g3],
@@ -469,7 +473,7 @@ const demoProfiles = [
     location: "Bengaluru, Karnataka",
     education: "M.Tech",
     job: "Tech Lead",
-    income: "₹28 LPA",
+    income: "â‚¹28 LPA",
     height: "5'11",
     image: PROFILE_IMAGES.g4,
     photos: [PROFILE_IMAGES.g4],
@@ -486,7 +490,7 @@ const demoProfiles = [
     location: "Thrissur, Kerala",
     education: "BBA",
     job: "Family Business",
-    income: "₹16 LPA",
+    income: "â‚¹16 LPA",
     height: "5'9",
     image: PROFILE_IMAGES.g5,
     photos: [PROFILE_IMAGES.g5],
@@ -503,7 +507,7 @@ const demoProfiles = [
     location: "Mumbai, Maharashtra",
     education: "MBA",
     job: "Sales Manager",
-    income: "₹14 LPA",
+    income: "â‚¹14 LPA",
     height: "5'10",
     image: PROFILE_IMAGES.g6,
     photos: [PROFILE_IMAGES.g6],
@@ -520,7 +524,7 @@ const demoProfiles = [
     location: "Kottayam, Kerala",
     education: "MBBS",
     job: "Doctor",
-    income: "₹30 LPA",
+    income: "â‚¹30 LPA",
     height: "5'11",
     image: PROFILE_IMAGES.g7,
     photos: [PROFILE_IMAGES.g7],
@@ -537,7 +541,7 @@ const demoProfiles = [
     location: "Delhi",
     education: "CA",
     job: "Finance Consultant",
-    income: "₹22 LPA",
+    income: "â‚¹22 LPA",
     height: "5'8",
     image: PROFILE_IMAGES.g8,
     photos: [PROFILE_IMAGES.g8],
@@ -554,7 +558,7 @@ const demoProfiles = [
     location: "Chennai, Tamil Nadu",
     education: "MCA",
     job: "Product Manager",
-    income: "₹24 LPA",
+    income: "â‚¹24 LPA",
     height: "5'10",
     image: PROFILE_IMAGES.g9,
     photos: [PROFILE_IMAGES.g9],
@@ -571,7 +575,7 @@ const demoProfiles = [
     location: "Ernakulam, Kerala",
     education: "B.Tech",
     job: "Civil Engineer",
-    income: "₹10 LPA",
+    income: "â‚¹10 LPA",
     height: "5'9",
     image: PROFILE_IMAGES.g10,
     photos: [PROFILE_IMAGES.g10],
@@ -588,7 +592,7 @@ const demoProfiles = [
     location: "Calicut, Kerala",
     education: "B.Tech",
     job: "Project Engineer",
-    income: "₹13 LPA",
+    income: "â‚¹13 LPA",
     height: "5'10",
     image: PROFILE_IMAGES.g11,
     photos: [PROFILE_IMAGES.g11],
@@ -605,7 +609,7 @@ const demoProfiles = [
     location: "Ahmedabad, Gujarat",
     education: "MBA",
     job: "Business Owner",
-    income: "₹25 LPA",
+    income: "â‚¹25 LPA",
     height: "5'9",
     image: PROFILE_IMAGES.g12,
     photos: [PROFILE_IMAGES.g12],
@@ -622,7 +626,7 @@ const demoProfiles = [
     location: "Pune, Maharashtra",
     education: "B.Sc IT",
     job: "System Analyst",
-    income: "₹12 LPA",
+    income: "â‚¹12 LPA",
     height: "5'8",
     image: PROFILE_IMAGES.g13,
     photos: [PROFILE_IMAGES.g13],
@@ -639,7 +643,7 @@ const demoProfiles = [
     location: "Mysuru, Karnataka",
     education: "M.Com",
     job: "Bank Manager",
-    income: "₹17 LPA",
+    income: "â‚¹17 LPA",
     height: "5'7",
     image: PROFILE_IMAGES.g14,
     photos: [PROFILE_IMAGES.g14],
@@ -656,7 +660,7 @@ const demoProfiles = [
     location: "Bhopal, Madhya Pradesh",
     education: "B.Tech",
     job: "Data Analyst",
-    income: "₹9 LPA",
+    income: "â‚¹9 LPA",
     height: "5'9",
     image: PROFILE_IMAGES.g15,
     photos: [PROFILE_IMAGES.g15],
@@ -671,7 +675,7 @@ const demoServices = [
     title: "Royal Function Hall",
     category: "Function Hall",
     location: "Kochi",
-    price: "₹1,50,000 onwards",
+    price: "â‚¹1,50,000 onwards",
     rating: 4.8,
     image: SERVICE_IMAGES.s1,
     description:
@@ -682,7 +686,7 @@ const demoServices = [
     title: "Dream Wedding Photography",
     category: "Photography",
     location: "Kerala",
-    price: "₹75,000 onwards",
+    price: "â‚¹75,000 onwards",
     rating: 4.7,
     image: SERVICE_IMAGES.s2,
     description:
@@ -693,7 +697,7 @@ const demoServices = [
     title: "Traditional Wedding Cooking",
     category: "Cooking",
     location: "Thrissur",
-    price: "₹350 per plate",
+    price: "â‚¹350 per plate",
     rating: 4.6,
     image: SERVICE_IMAGES.s3,
     description:
@@ -704,7 +708,7 @@ const demoServices = [
     title: "Bridal Glow Makeup",
     category: "Makeup",
     location: "Kottayam",
-    price: "₹25,000 onwards",
+    price: "â‚¹25,000 onwards",
     rating: 4.9,
     image: SERVICE_IMAGES.s4,
     description:
@@ -715,7 +719,7 @@ const demoServices = [
     title: "Elegant Wedding Decor",
     category: "Decoration",
     location: "Hyderabad",
-    price: "₹85,000 onwards",
+    price: "â‚¹85,000 onwards",
     rating: 4.7,
     image: SERVICE_IMAGES.s5,
     description:
@@ -726,7 +730,7 @@ const demoServices = [
     title: "Elite Event Planners",
     category: "Event Planner",
     location: "Bengaluru",
-    price: "₹1,20,000 onwards",
+    price: "â‚¹1,20,000 onwards",
     rating: 4.8,
     image: SERVICE_IMAGES.s6,
     description:
@@ -737,7 +741,7 @@ const demoServices = [
     title: "Melody Wedding Arkestra",
     category: "Arkestra",
     location: "Vijayawada",
-    price: "₹45,000 onwards",
+    price: "â‚¹45,000 onwards",
     rating: 4.6,
     image: SERVICE_IMAGES.s7,
     description:
@@ -748,7 +752,7 @@ const demoServices = [
     title: "Grand Arkestra Night",
     category: "Arkestra",
     location: "Hyderabad",
-    price: "₹65,000 onwards",
+    price: "â‚¹65,000 onwards",
     rating: 4.8,
     image: SERVICE_IMAGES.s8,
     description:
@@ -759,7 +763,7 @@ const demoServices = [
     title: "Royal Wedding Cooking Team",
     category: "Cooking",
     location: "Rajahmundry",
-    price: "₹300 per plate",
+    price: "â‚¹300 per plate",
     rating: 4.7,
     image: SERVICE_IMAGES.s9,
     description:
@@ -770,7 +774,7 @@ const demoServices = [
     title: "Wedding Cleaning Support",
     category: "Cleaning",
     location: "Kochi",
-    price: "₹18,000 onwards",
+    price: "â‚¹18,000 onwards",
     rating: 4.5,
     image: SERVICE_IMAGES.s10,
     description:
@@ -781,7 +785,7 @@ const demoServices = [
     title: "Premium Event Cleaning Team",
     category: "Cleaning",
     location: "Bengaluru",
-    price: "₹25,000 onwards",
+    price: "â‚¹25,000 onwards",
     rating: 4.7,
     image: SERVICE_IMAGES.s11,
     description:
@@ -792,7 +796,7 @@ const demoServices = [
     title: "Sri Lakshmi Function Hall",
     category: "Function Hall",
     location: "Hyderabad",
-    price: "₹2,00,000 onwards",
+    price: "â‚¹2,00,000 onwards",
     rating: 4.8,
     image: SERVICE_IMAGES.s12,
     description:
@@ -803,7 +807,7 @@ const demoServices = [
     title: "Bride Luxury Car Service",
     category: "Bride And Groom Car Services",
     location: "Kochi",
-    price: "₹18,000 onwards",
+    price: "â‚¹18,000 onwards",
     rating: 4.7,
     image: SERVICE_IMAGES.s13,
     description:
@@ -814,7 +818,7 @@ const demoServices = [
     title: "Groom Premium Car Service",
     category: "Bride And Groom Car Services",
     location: "Hyderabad",
-    price: "₹22,000 onwards",
+    price: "â‚¹22,000 onwards",
     rating: 4.8,
     image: SERVICE_IMAGES.s14,
     description:
@@ -877,6 +881,7 @@ const defaultMyProfile = {
   partnerLocation: "",
   partnerEducation: "",
   habits: "",
+  preferredLanguage: "en",
   image: PROFILE_IMAGES.defaultProfile,
   photos: [PROFILE_IMAGES.defaultProfile],
   profileCompletion: 25,
@@ -976,7 +981,7 @@ export function MatrimonyProvider({ children }) {
   });
   const [notifications, setNotifications] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguageState] = useState("en");
   const [vendors, setVendors] = useState([]);
   const [currentVendor, setCurrentVendor] = useState(null);
   const [vendorServices, setVendorServices] = useState(() => {
@@ -997,6 +1002,28 @@ export function MatrimonyProvider({ children }) {
     [isDarkMode]
   );
   const serviceCopy = getServiceCopy(language);
+
+  useEffect(() => {
+    let active = true;
+
+    const bootstrapLanguage = async () => {
+      try {
+        const savedLanguage = await loadSavedLanguage();
+
+        if (active) {
+          setLanguageState(savedLanguage);
+        }
+      } catch (error) {
+        // keep the default language when storage is unavailable
+      }
+    };
+
+    bootstrapLanguage();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -1119,6 +1146,35 @@ export function MatrimonyProvider({ children }) {
     return data;
   };
 
+  const setLanguage = async (nextLanguage, options = {}) => {
+    const normalizedLanguage = normalizeLanguage(nextLanguage);
+
+    setLanguageState(normalizedLanguage);
+    setMyProfile((prev) => ({
+      ...prev,
+      preferredLanguage: normalizedLanguage,
+    }));
+    setCurrentUser((prev) => (prev ? { ...prev, preferredLanguage: normalizedLanguage } : prev));
+
+    try {
+      await changeAppLanguage(normalizedLanguage);
+    } catch (error) {
+      // keep the local state even when storage fails
+    }
+
+    if (options.persistBackend !== false && currentUser?.id) {
+      try {
+        await fetchJson(`${API_BASE_URL}/api/users/${currentUser.id}/language`, {
+          method: "PATCH",
+          body: JSON.stringify({ preferredLanguage: normalizedLanguage }),
+        });
+      } catch (error) {
+        // language updates are best-effort on the backend
+      }
+    }
+
+    return normalizedLanguage;
+  };
   const uploadVendorAsset = async (uri, documentType = "vendor-image") => {
     if (!uri || typeof uri !== "string") {
       return "";
@@ -1189,6 +1245,7 @@ export function MatrimonyProvider({ children }) {
     premiumPlan: user?.premiumPlan || defaultMyProfile.premiumPlan,
     premiumStatus: user?.premiumStatus || defaultMyProfile.premiumStatus,
     premiumActivatedAt: user?.premiumActivatedAt || defaultMyProfile.premiumActivatedAt,
+    preferredLanguage: normalizeLanguage(user?.preferredLanguage || user?.language || defaultMyProfile.preferredLanguage),
     habits: user?.habits || "",
   });
 
@@ -1223,16 +1280,29 @@ export function MatrimonyProvider({ children }) {
     String(category || "default").trim().toLowerCase();
 
   const getServiceProfileForCategory = (svc = {}, category = "") => {
-    const profile = svc.serviceProfiles?.[getServiceProfileKey(category)] || {};
+    const serviceProfileKey = getServiceProfileKey(category);
+    const profile = svc.serviceProfiles?.[serviceProfileKey] || {};
+    const hasServiceProfiles = Object.keys(svc.serviceProfiles || {}).length > 0;
+    const allowLegacyFallback = serviceProfileKey === "default" || !hasServiceProfiles;
 
     return {
-      photos: Array.isArray(profile.photos) ? profile.photos : svc.photos || [],
-      serviceDescription: profile.serviceDescription ?? svc.serviceDescription ?? "",
-      packages: Array.isArray(profile.packages) ? profile.packages : svc.packages || [],
+      photos: Array.isArray(profile.photos)
+        ? profile.photos
+        : allowLegacyFallback
+          ? svc.photos || []
+          : [],
+      serviceDescription: profile.serviceDescription ?? (allowLegacyFallback ? svc.serviceDescription ?? "" : ""),
+      packages: Array.isArray(profile.packages)
+        ? profile.packages
+        : allowLegacyFallback
+          ? svc.packages || []
+          : [],
       serviceDetails:
         profile.serviceDetails && Object.keys(profile.serviceDetails).length
           ? profile.serviceDetails
-          : svc.serviceDetails || {},
+          : allowLegacyFallback
+            ? svc.serviceDetails || {}
+            : {},
     };
   };
 
@@ -1320,7 +1390,7 @@ export function MatrimonyProvider({ children }) {
           .map((pkg) => Number(String(pkg?.price || "").replace(/[^\d.]/g, "")))
           .filter((price) => Number.isFinite(price) && price > 0);
         const price = prices.length
-          ? `₹${Math.min(...prices)} onwards`
+          ? `â‚¹${Math.min(...prices)} onwards`
           : vendor.startingPrice || "Contact vendor";
         const categories = Array.isArray(vendor.services) && vendor.services.length
           ? vendor.services
@@ -1383,6 +1453,7 @@ export function MatrimonyProvider({ children }) {
     servicePackages: Array.isArray(vendor?.servicePackages) ? vendor.servicePackages : [],
     serviceDetails: vendor?.serviceDetails || {},
     serviceDescription: vendor?.serviceDescription || vendor?.description || "",
+    preferredLanguage: normalizeLanguage(vendor?.preferredLanguage || vendor?.language || "en"),
   });
 
   const mapServiceCustomerState = (payload = {}) => ({
@@ -1413,7 +1484,7 @@ export function MatrimonyProvider({ children }) {
     // Treat session hydration as best-effort so a flaky secondary endpoint
     // does not block a successful login from completing.
     await Promise.allSettled([
-      loadApprovedProfiles(),
+      loadApprovedProfiles({ gender: getOppositeGender(userData?.gender || userData?.profile?.gender || "") }),
       loadWeddingServices(),
       loadCurrentUserData(userData.id),
       loadAdminData(),
@@ -1447,14 +1518,31 @@ export function MatrimonyProvider({ children }) {
     setIsDarkMode((prev) => !prev);
   };
 
+  const getOppositeGender = (gender = "") => {
+    const normalized = String(gender || "").trim().toLowerCase();
+    if (normalized === "bride" || normalized === "female" || normalized === "woman") {
+      return "Groom";
+    }
+    if (normalized === "groom" || normalized === "male" || normalized === "man") {
+      return "Bride";
+    }
+    return "";
+  };
+
   const loadApprovedProfiles = async (filters = {}) => {
     try {
       const searchParams = new URLSearchParams();
-
-      if (filters.gender && filters.gender !== "All") {
-        searchParams.append("gender", filters.gender);
+      if (currentUser?.id != null) {
+        searchParams.append("viewerUserId", String(currentUser.id));
       }
 
+      const requestedGender = filters.gender && filters.gender !== "All"
+        ? filters.gender
+        : getOppositeGender(myProfile?.gender || currentUser?.gender || "");
+
+      if (requestedGender) {
+        searchParams.append("gender", requestedGender);
+      }
       if (filters.name?.trim()) {
         searchParams.append("name", filters.name.trim());
       }
@@ -1554,9 +1642,25 @@ export function MatrimonyProvider({ children }) {
       );
 
       if (profileData.status === "fulfilled" && profileData.value?.data) {
-        setMyProfile(mapUserToProfile(profileData.value.data));
-        setCurrentUser(profileData.value.data);
+        const mappedProfile = mapUserToProfile(profileData.value.data);
+        const profileLanguage = normalizeLanguage(
+          profileData.value.data?.preferredLanguage || profileData.value.data?.language || mappedProfile.preferredLanguage
+        );
+
+        setMyProfile({
+          ...mappedProfile,
+          preferredLanguage: profileLanguage,
+        });
+        setCurrentUser({
+          ...profileData.value.data,
+          preferredLanguage: profileLanguage,
+        });
         setWishlistProfiles(readStoredWishlistProfiles(userId));
+
+        if (profileLanguage !== language) {
+          await changeAppLanguage(profileLanguage);
+          setLanguageState(profileLanguage);
+        }
       }
 
       if (notificationData.status === "fulfilled") {
@@ -1857,7 +1961,7 @@ export function MatrimonyProvider({ children }) {
         success: false,
         message:
           language === "te"
-            ? "వాచ్‌లిస్ట్‌ను అప్‌డేట్ చేయడానికి మళ్లీ లాగిన్ అవ్వండి."
+            ? "à°µà°¾à°šà±â€Œà°²à°¿à°¸à±à°Ÿà±â€Œà°¨à± à°…à°ªà±â€Œà°¡à±‡à°Ÿà± à°šà±‡à°¯à°¡à°¾à°¨à°¿à°•à°¿ à°®à°³à±à°²à±€ à°²à°¾à°—à°¿à°¨à± à°…à°µà±à°µà°‚à°¡à°¿."
             : "Please login again before updating wishlist.",
       };
     }
@@ -1870,7 +1974,7 @@ export function MatrimonyProvider({ children }) {
         success: true,
         message:
           language === "te"
-            ? "ప్రొఫైల్ ఇప్పటికే వాచ్‌లిస్ట్‌లో ఉంది."
+            ? "à°ªà±à°°à±Šà°«à±ˆà°²à± à°‡à°ªà±à°ªà°Ÿà°¿à°•à±‡ à°µà°¾à°šà±â€Œà°²à°¿à°¸à±à°Ÿà±â€Œà°²à±‹ à°‰à°‚à°¦à°¿."
             : "Profile is already in wishlist.",
       };
     }
@@ -1879,16 +1983,16 @@ export function MatrimonyProvider({ children }) {
     setWishlistProfiles(nextWishlist);
     writeStoredWishlistProfiles(currentUser?.id || myProfile?.id, nextWishlist);
     addNotification(
-      language === "te" ? "ప్రొఫైల్ షార్ట్‌లిస్ట్ అయింది" : "Profile Shortlisted",
+      language === "te" ? "à°ªà±à°°à±Šà°«à±ˆà°²à± à°·à°¾à°°à±à°Ÿà±â€Œà°²à°¿à°¸à±à°Ÿà± à°…à°¯à°¿à°‚à°¦à°¿" : "Profile Shortlisted",
       language === "te"
-        ? `${profile.name} మీ వాచ్‌లిస్ట్‌కు జోడించబడింది.`
+        ? `${profile.name} à°®à±€ à°µà°¾à°šà±â€Œà°²à°¿à°¸à±à°Ÿà±â€Œà°•à± à°œà±‹à°¡à°¿à°‚à°šà°¬à°¡à°¿à°‚à°¦à°¿.`
         : `${profile.name} added to wishlist.`
     );
     return {
       success: true,
       message:
         language === "te"
-          ? `${profile.name} మీ వాచ్‌లిస్ట్‌కు జోడించబడింది.`
+          ? `${profile.name} à°®à±€ à°µà°¾à°šà±â€Œà°²à°¿à°¸à±à°Ÿà±â€Œà°•à± à°œà±‹à°¡à°¿à°‚à°šà°¬à°¡à°¿à°‚à°¦à°¿.`
           : `${profile.name} added to wishlist.`,
     };
   };
@@ -1914,7 +2018,7 @@ export function MatrimonyProvider({ children }) {
       success: true,
       message:
         language === "te"
-          ? "ప్రొఫైల్ వాచ్‌లిస్ట్‌ నుంచి తీసివేయబడింది."
+          ? "à°ªà±à°°à±Šà°«à±ˆà°²à± à°µà°¾à°šà±â€Œà°²à°¿à°¸à±à°Ÿà±â€Œ à°¨à±à°‚à°šà°¿ à°¤à±€à°¸à°¿à°µà±‡à°¯à°¬à°¡à°¿à°‚à°¦à°¿."
           : "Profile removed from wishlist.",
     };
   };
@@ -2206,7 +2310,7 @@ export function MatrimonyProvider({ children }) {
     addNotification(
       serviceCopy.newBookingTitle,
       language === "te"
-        ? `${request.userName} ${request.serviceTitle} కోసం బుకింగ్ అభ్యర్థన పంపారు.`
+        ? `${request.userName} ${request.serviceTitle} à°•à±‹à°¸à°‚ à°¬à±à°•à°¿à°‚à°—à± à°…à°­à±à°¯à°°à±à°¥à°¨ à°ªà°‚à°ªà°¾à°°à±.`
         : `${request.userName} submitted a booking request for ${request.serviceTitle}.`,
       {
         to: "admin",
@@ -2470,6 +2574,7 @@ export function MatrimonyProvider({ children }) {
       ...myProfile,
       ...profileData,
       image: toStoredAssetPath(profileData?.image || myProfile?.image),
+      preferredLanguage: normalizeLanguage(profileData?.preferredLanguage || myProfile?.preferredLanguage || language),
       profileCompletion: completion,
       approvalStatus: "Pending",
     };
@@ -3375,10 +3480,12 @@ export function MatrimonyProvider({ children }) {
 
         return {
           ...svc,
-          photos: nextPhotos,
-          serviceDescription: serviceCategory
-            ? options.serviceDescription ?? svc.serviceDescription
-            : options.serviceDescription ?? svc.serviceDescription,
+          ...(serviceCategory
+            ? {}
+            : {
+                photos: nextPhotos,
+                serviceDescription: options.serviceDescription ?? svc.serviceDescription,
+              }),
           serviceProfiles: {
             ...(svc.serviceProfiles || {}),
             [serviceProfileKey]: nextProfile,
@@ -3413,10 +3520,12 @@ export function MatrimonyProvider({ children }) {
 
       return {
         ...svc,
-        photos: normalizedPhotos,
-        serviceDescription: serviceCategory
-          ? options.serviceDescription ?? svc.serviceDescription
-          : options.serviceDescription ?? svc.serviceDescription,
+        ...(serviceCategory
+          ? {}
+          : {
+              photos: normalizedPhotos,
+              serviceDescription: options.serviceDescription ?? svc.serviceDescription,
+            }),
         serviceProfiles: {
           ...(svc.serviceProfiles || {}),
           [serviceProfileKey]: nextProfile,
@@ -3442,7 +3551,7 @@ export function MatrimonyProvider({ children }) {
 
         return {
           ...svc,
-          packages: nextPackages,
+          ...(serviceCategory ? {} : {packages: nextPackages}),
           serviceProfiles: {
             ...(svc.serviceProfiles || {}),
             [serviceProfileKey]: nextProfile,
@@ -3468,7 +3577,7 @@ export function MatrimonyProvider({ children }) {
 
         return {
           ...svc,
-          serviceDetails: nextDetails,
+          ...(serviceCategory ? {} : {serviceDetails: nextDetails}),
           serviceProfiles: {
             ...(svc.serviceProfiles || {}),
             [serviceProfileKey]: nextProfile,
@@ -3499,14 +3608,14 @@ export function MatrimonyProvider({ children }) {
       .map((pkg) => Number(String(pkg?.price || "").replace(/[^\d.]/g, "")))
       .filter((price) => Number.isFinite(price) && price > 0);
     const startingPrice = packagePrices.length
-      ? `₹${Math.min(...packagePrices)} onwards`
+      ? `â‚¹${Math.min(...packagePrices)} onwards`
       : vendor?.startingPrice || "";
     const detailsText = Object.entries(serviceDetails)
       .filter(([, value]) => String(value || "").trim())
       .map(([key, value]) => `${key}: ${String(value).trim()}`)
       .join("\n");
     const packageText = packages
-      .map((pkg) => `${pkg.name || "Package"} - ₹${pkg.price || "Contact"}${pkg.includes ? ` (${pkg.includes})` : ""}`)
+      .map((pkg) => `${pkg.name || "Package"} - â‚¹${pkg.price || "Contact"}${pkg.includes ? ` (${pkg.includes})` : ""}`)
       .join("\n");
     const description = [
       svc.serviceDescription || vendor?.description || "",
@@ -4183,3 +4292,14 @@ export function useMatrimony() {
 
   return context;
 }
+
+
+
+
+
+
+
+
+
+
+

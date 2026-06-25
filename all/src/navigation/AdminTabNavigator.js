@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import Text from "../components/AdminText";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -8,6 +9,7 @@ import AdminVerificationScreen from "../screens/admin/AdminVerificationScreen";
 import AdminUsersScreen from "../screens/admin/AdminUsersScreen";
 import AdminServicesScreen from "../screens/admin/AdminServicesScreen";
 import AdminVendorNotificationsScreen from "../screens/admin/AdminVendorNotificationsScreen";
+import AdminProfileScreen from "../screens/admin/AdminProfileScreen";
 
 // These two screens remain available for navigation,
 // but they will NOT show in bottom tab bar.
@@ -15,6 +17,7 @@ import AdminApprovalsScreen from "../screens/admin/AdminApprovalsScreen";
 import AdminNotificationsScreen from "../screens/admin/AdminNotificationsScreen";
 
 import { COLORS } from "../constants/colors";
+import { useMatrimony } from "../context/MatrimonyContext";
 
 const Tab = createBottomTabNavigator();
 
@@ -27,7 +30,13 @@ function TabIcon({ focused, icon, label }) {
         color={focused ? COLORS.primary : COLORS.muted}
       />
 
-      <Text style={[styles.tabText, focused && { color: COLORS.primary }]}>
+      <Text
+        adminTranslate={false}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.65}
+        style={[styles.tabText, focused && { color: COLORS.primary }]}
+      >
         {label}
       </Text>
     </View>
@@ -35,12 +44,19 @@ function TabIcon({ focused, icon, label }) {
 }
 
 export default function AdminTabNavigator() {
+  const { language } = useMatrimony();
+  const labels = language === "te"
+    ? { home: "హోమ్", verify: "ధృవీకరణ", users: "వినియోగదారులు", services: "సేవలు" }
+    : { home: "Home", verify: "Verify", users: "Users", services: "Services" };
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen
@@ -48,7 +64,7 @@ export default function AdminTabNavigator() {
         component={AdminDashboardScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="grid" label="Home" />
+            <TabIcon focused={focused} icon="grid" label={labels.home} />
           ),
         }}
       />
@@ -58,7 +74,7 @@ export default function AdminTabNavigator() {
         component={AdminVerificationScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="shield-checkmark" label="Verify" />
+            <TabIcon focused={focused} icon="shield-checkmark" label={labels.verify} />
           ),
         }}
       />
@@ -68,7 +84,7 @@ export default function AdminTabNavigator() {
         component={AdminUsersScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="people" label="Users" />
+            <TabIcon focused={focused} icon="people" label={labels.users} />
           ),
         }}
       />
@@ -78,7 +94,7 @@ export default function AdminTabNavigator() {
         component={AdminServicesScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon="business" label="Services" />
+            <TabIcon focused={focused} icon="business" label={labels.services} />
           ),
         }}
       />
@@ -111,28 +127,47 @@ export default function AdminTabNavigator() {
           tabBarItemStyle: { display: "none" },
         }}
       />
+      <Tab.Screen
+        name="AdminProfile"
+        component={AdminProfileScreen}
+        options={{
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: "none" },
+        }}
+      />
     </Tab.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 72,
+    height: 74,
     borderTopWidth: 0,
     elevation: 12,
     backgroundColor: COLORS.white,
   },
 
+  tabBarItem: {
+    flex: 1,
+    minWidth: 0,
+  },
+
   tabItem: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 3,
+    width: "100%",
+    paddingHorizontal: 4,
   },
 
   tabText: {
-    fontSize: 11,
+    width: "100%",
+    minHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     marginTop: 3,
     color: COLORS.muted,
-    fontWeight: "900",
+    fontWeight: "800",
+    textAlign: "center",
   },
 });

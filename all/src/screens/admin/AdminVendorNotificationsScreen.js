@@ -3,7 +3,6 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -12,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 
 import Header from "../../components/Header";
+import Text from "../../components/AdminText";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";
 

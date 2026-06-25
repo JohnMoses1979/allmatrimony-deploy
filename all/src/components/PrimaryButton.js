@@ -1,8 +1,9 @@
-import React from "react";
+﻿import React from "react";
 import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
+import AutoText from "./AutoText";
 
 export default function PrimaryButton({ title, onPress, style, disabled }) {
   const { appTheme } = useMatrimony();
@@ -24,7 +25,7 @@ export default function PrimaryButton({ title, onPress, style, disabled }) {
         }
         style={[styles.button, disabled && styles.buttonDisabled]}
       >
-        <Text style={styles.text}>{title}</Text>
+        <AutoText style={styles.text}>{title}</AutoText>
       </LinearGradient>
     </TouchableOpacity>
   );

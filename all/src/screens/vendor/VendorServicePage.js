@@ -1,16 +1,16 @@
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
   Modal,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import TextInput from '../../components/VendorTextInput';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import {ProfileContext} from '../../context/ProfileContext';

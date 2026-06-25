@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   Alert,
 } from "react-native";
@@ -13,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { COLORS } from "../constants/colors";
+import Text from "../components/AutoText";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";
 import PrimaryButton from "../components/PrimaryButton";

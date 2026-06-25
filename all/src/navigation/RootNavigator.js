@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import SplashScreen from "../screens/SplashScreen";
@@ -30,6 +30,7 @@ import VendorPackagesScreen from "../screens/vendor/VendorPackagesScreen";
 import VendorPhotosScreen from "../screens/vendor/VendorPhotosScreen";
 import VendorProfileScreen from "../screens/vendor/VendorProfileScreen";
 import VendorRegisterScreen from "../screens/vendor/VendorRegisterScreen";
+import InvitationCardScreen from "../screens/vendor/InvitationCardScreen";
 import VendorRevenueScreen from "../screens/vendor/VendorRevenueScreen";
 import VendorServicePage from "../screens/vendor/VendorServicePage";
 
@@ -136,6 +137,7 @@ export default function RootNavigator() {
       />
       <Stack.Screen name="VendorProfile" component={VendorProfileScreen} />
       <Stack.Screen name="VendorServicePage" component={VendorServicePage} />
+      <Stack.Screen name="InvitationCard" component={InvitationCardScreen} />
       <Stack.Screen name="VendorKYC" component={VendorKYCScreen} />
       <Stack.Screen name="VendorPhotos" component={VendorPhotosScreen} />
       <Stack.Screen name="VendorPackages" component={VendorPackagesScreen} />

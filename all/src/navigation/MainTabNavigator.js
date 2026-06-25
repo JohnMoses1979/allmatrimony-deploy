@@ -1,5 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+﻿import React from "react";
+import { View, StyleSheet, useWindowDimensions } from "react-native";
+import Text from "../components/AutoText";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -15,7 +16,16 @@ import { useMatrimony } from "../context/MatrimonyContext";
 const Tab = createBottomTabNavigator();
 
 function TabIcon({ focused, icon, label }) {
+  const { width } = useWindowDimensions();
   const { appTheme } = useMatrimony();
+  const tabLabelStyle = [
+    styles.tabText,
+    {
+      color: focused ? COLORS.primary : appTheme?.muted || COLORS.muted,
+      fontSize: 6,
+      maxWidth: Math.max(140, Math.floor(width / 2.5)),
+    },
+  ];
 
   return (
     <View style={styles.tabItem}>
@@ -24,16 +34,15 @@ function TabIcon({ focused, icon, label }) {
         size={22}
         color={focused ? COLORS.primary : appTheme?.muted || COLORS.muted}
       />
-      <Text
-        style={[
-          styles.tabText,
-          { color: focused ? COLORS.primary : appTheme?.muted || COLORS.muted },
-        ]}
-      >
+      <Text numberOfLines={1} style={tabLabelStyle}>
         {label}
       </Text>
     </View>
   );
+}
+
+function longTabItemStyle(flex = 1.25) {
+  return { flex };
 }
 
 export default function MainTabNavigator() {
@@ -50,6 +59,7 @@ export default function MainTabNavigator() {
           styles.tabBar,
           { backgroundColor: appTheme?.tabBar || COLORS.white },
         ],
+        tabBarItemStyle: styles.tabBarItem,
       }}
     >
       <Tab.Screen
@@ -66,6 +76,7 @@ export default function MainTabNavigator() {
         name="Matches"
         component={MatchesScreen}
         options={{
+          tabBarItemStyle: longTabItemStyle(1.35),
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="heart" label={t.matches} />
           ),
@@ -86,6 +97,7 @@ export default function MainTabNavigator() {
         name="Services"
         component={ServicesScreen}
         options={{
+          tabBarItemStyle: longTabItemStyle(1.4),
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="business" label={t.services} />
           ),
@@ -96,6 +108,7 @@ export default function MainTabNavigator() {
         name="MyProfile"
         component={MyProfileScreen}
         options={{
+          tabBarItemStyle: longTabItemStyle(1.25),
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} icon="person" label={t.profile} />
           ),
@@ -107,7 +120,7 @@ export default function MainTabNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 72,
+    height: 96,
     borderTopWidth: 0,
     elevation: 12,
     shadowColor: "#000",
@@ -115,15 +128,20 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     backgroundColor: COLORS.white,
   },
+  tabBarItem: {
+    flex: 1,
+  },
   tabItem: {
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: 2,
+    paddingHorizontal: 3,
   },
   tabText: {
-    fontSize: 11,
     marginTop: 3,
     color: COLORS.muted,
-    fontWeight: "700",
+    fontWeight: "400",
+    textAlign: "center",
   },
 });

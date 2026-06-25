@@ -1,582 +1,4 @@
-// import React, { useMemo, useState } from "react";
-// import {
-//   ActivityIndicator,
-//   KeyboardAvoidingView,
-//   Platform,
-//   ScrollView,
-//   StyleSheet,
-//   Text,
-//   TextInput,
-//   TouchableOpacity,
-//   View,
-// } from "react-native";
-// import { SafeAreaView } from "react-native-safe-area-context";
-// import { Ionicons } from "@expo/vector-icons";
-
-// import Header from "../components/Header";
-// import InlineMessage from "../components/InlineMessage";
-// import PrimaryButton from "../components/PrimaryButton";
-// import { COLORS } from "../constants/colors";
-// import { API_BASE_URL } from "../config/api";
-// import {
-//   isValidEmail,
-//   isValidOtp,
-//   isValidPassword,
-//   isValidPhone,
-//   normalizeEmail,
-//   normalizePhone,
-// } from "../utils/authValidation";
-
-// const initialForm = {
-//   name: "",
-//   email: "",
-//   phone: "",
-//   otp: "",
-//   gender: "",
-//   community: "",
-//   location: "",
-//   password: "",
-//   confirmPassword: "",
-// };
-
-// export default function RegisterScreen({ navigation }) {
-//   const [form, setForm] = useState(initialForm);
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-//   const [message, setMessage] = useState({ type: "info", text: "" });
-//   const [sendingOtp, setSendingOtp] = useState(false);
-//   const [verifyingOtp, setVerifyingOtp] = useState(false);
-//   const [registering, setRegistering] = useState(false);
-//   const [otpSent, setOtpSent] = useState(false);
-//   const [phoneVerified, setPhoneVerified] = useState(false);
-
-//   const updateField = (key, value) => {
-//     setForm((prev) => ({
-//       ...prev,
-//       [key]: value,
-//       ...(key === "phone" ? { otp: "" } : {}),
-//     }));
-
-//     if (key === "phone") {
-//       setOtpSent(false);
-//       setPhoneVerified(false);
-//     }
-
-//     if (message.text) {
-//       setMessage({ type: "info", text: "" });
-//     }
-//   };
-
-//   const canVerifyOtp = useMemo(
-//     () => otpSent && isValidOtp(form.otp) && !phoneVerified,
-//     [form.otp, otpSent, phoneVerified]
-//   );
-
-//   const validateRegisterForm = () => {
-//     if (!form.name.trim()) {
-//       return "Please enter full name.";
-//     }
-
-//     if (!isValidEmail(form.email)) {
-//       return "Please enter a valid email address.";
-//     }
-
-//     if (!isValidPhone(form.phone)) {
-//       return "Please enter a valid 10-digit phone number.";
-//     }
-
-//     if (!phoneVerified) {
-//       return "Please verify your phone number with OTP.";
-//     }
-
-//     if (!form.gender.trim()) {
-//       return "Please enter gender.";
-//     }
-
-//     if (!form.community.trim()) {
-//       return "Please enter community or religion.";
-//     }
-
-//     if (!form.location.trim()) {
-//       return "Please enter location.";
-//     }
-
-//     if (!isValidPassword(form.password)) {
-//       return "Password must be at least 6 characters.";
-//     }
-
-//     if (form.password !== form.confirmPassword) {
-//       return "Password and confirm password must match.";
-//     }
-
-//     return "";
-//   };
-
-//   const handleSendOtp = async () => {
-//     const phone = normalizePhone(form.phone);
-
-//     if (!isValidPhone(phone)) {
-//       setMessage({
-//         type: "error",
-//         text: "Please enter a valid 10-digit phone number before sending OTP.",
-//       });
-//       return;
-//     }
-
-//     try {
-//       setSendingOtp(true);
-//       setMessage({ type: "info", text: "" });
-
-//       const response = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ phone }),
-//       });
-
-//       const data = await response.json();
-
-//       if (!response.ok || !data.success) {
-//         setMessage({
-//           type: "error",
-//           text: data.message || "Unable to send OTP right now.",
-//         });
-//         return;
-//       }
-
-//       setOtpSent(true);
-//       setPhoneVerified(false);
-//       setMessage({
-//         type: "success",
-//         text: data.demoOtp
-//           ? `${data.message} Demo OTP: ${data.demoOtp}`
-//           : data.message || "OTP sent successfully.",
-//       });
-//     } catch (error) {
-//       setMessage({
-//         type: "error",
-//         text: "Could not connect to backend. Check Spring Boot server and API URL.",
-//       });
-//     } finally {
-//       setSendingOtp(false);
-//     }
-//   };
-
-//   const handleVerifyOtp = async () => {
-//     const phone = normalizePhone(form.phone);
-//     const otp = form.otp.trim();
-
-//     if (!isValidPhone(phone)) {
-//       setMessage({
-//         type: "error",
-//         text: "Please enter a valid phone number.",
-//       });
-//       return;
-//     }
-
-//     if (!isValidOtp(otp)) {
-//       setMessage({
-//         type: "error",
-//         text: "Please enter a valid 6-digit OTP.",
-//       });
-//       return;
-//     }
-
-//     try {
-//       setVerifyingOtp(true);
-//       setMessage({ type: "info", text: "" });
-
-//       const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ phone, otp }),
-//       });
-
-//       const data = await response.json();
-
-//       if (!response.ok || !data.success) {
-//         setPhoneVerified(false);
-//         setMessage({
-//           type: "error",
-//           text: data.message || "Invalid OTP.",
-//         });
-//         return;
-//       }
-
-//       setPhoneVerified(true);
-//       setMessage({
-//         type: "success",
-//         text: data.message || "Phone number verified successfully.",
-//       });
-//     } catch (error) {
-//       setMessage({
-//         type: "error",
-//         text: "Could not verify OTP. Check backend connection.",
-//       });
-//     } finally {
-//       setVerifyingOtp(false);
-//     }
-//   };
-
-//   const handleRegister = async () => {
-//     const validationError = validateRegisterForm();
-
-//     if (validationError) {
-//       setMessage({
-//         type: "error",
-//         text: validationError,
-//       });
-//       return;
-//     }
-
-//     try {
-//       setRegistering(true);
-//       setMessage({ type: "info", text: "" });
-
-//       const payload = {
-//         name: form.name.trim(),
-//         email: normalizeEmail(form.email),
-//         phone: normalizePhone(form.phone),
-//         gender: form.gender.trim(),
-//         community: form.community.trim(),
-//         location: form.location.trim(),
-//         password: form.password,
-//       };
-
-//       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify(payload),
-//       });
-
-//       const data = await response.json();
-
-//       if (!response.ok || !data.success) {
-//         setMessage({
-//           type: "error",
-//           text: data.message || "Registration failed.",
-//         });
-//         return;
-//       }
-
-//       setMessage({
-//         type: "success",
-//         text: data.message || "Registration successful. Please login.",
-//       });
-
-//       setTimeout(() => {
-//         navigation.replace("Login");
-//       }, 900);
-//     } catch (error) {
-//       setMessage({
-//         type: "error",
-//         text: "Could not connect to backend. Check Spring Boot server and database.",
-//       });
-//     } finally {
-//       setRegistering(false);
-//     }
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <Header
-//         title="Create Profile"
-//         subtitle="Register bride or groom profile"
-//         navigation={navigation}
-//         showBack={true}
-//         showNotification={false}
-//         backTo="Login"
-//       />
-
-//       <KeyboardAvoidingView
-//         style={styles.keyboardView}
-//         behavior={Platform.OS === "ios" ? "padding" : undefined}
-//       >
-//         <ScrollView
-//           keyboardShouldPersistTaps="handled"
-//           showsVerticalScrollIndicator={false}
-//           contentContainerStyle={styles.content}
-//         >
-//           <InlineMessage type={message.type} text={message.text} />
-
-//           <FormField
-//             label="Full Name"
-//             placeholder="Enter full name"
-//             value={form.name}
-//             onChangeText={(text) => updateField("name", text)}
-//             icon="person-outline"
-//           />
-
-//           <FormField
-//             label="Email Address"
-//             placeholder="Enter email address"
-//             value={form.email}
-//             onChangeText={(text) => updateField("email", text)}
-//             icon="mail-outline"
-//             keyboardType="email-address"
-//             autoCapitalize="none"
-//           />
-
-//           <Text style={styles.label}>Phone Number</Text>
-//           <View style={styles.actionRow}>
-//             <View style={[styles.inputBox, styles.rowInput]}>
-//               <Ionicons name="call-outline" size={20} color={COLORS.muted} />
-//               <TextInput
-//                 style={styles.input}
-//                 placeholder="Enter 10-digit phone number"
-//                 value={form.phone}
-//                 onChangeText={(text) => updateField("phone", text)}
-//                 keyboardType="phone-pad"
-//                 placeholderTextColor="#9CA3AF"
-//               />
-//               {phoneVerified && (
-//                 <Ionicons
-//                   name="checkmark-circle"
-//                   size={20}
-//                   color={COLORS.success}
-//                 />
-//               )}
-//             </View>
-
-//             <TouchableOpacity
-//               style={styles.sideButton}
-//               activeOpacity={0.85}
-//               onPress={handleSendOtp}
-//               disabled={sendingOtp}
-//             >
-//               {sendingOtp ? (
-//                 <ActivityIndicator size="small" color={COLORS.white} />
-//               ) : (
-//                 <Text style={styles.sideButtonText}>Send OTP</Text>
-//               )}
-//             </TouchableOpacity>
-//           </View>
-
-//           <Text style={styles.label}>OTP</Text>
-//           <View style={styles.actionRow}>
-//             <View style={[styles.inputBox, styles.rowInput]}>
-//               <Ionicons
-//                 name="shield-checkmark-outline"
-//                 size={20}
-//                 color={COLORS.muted}
-//               />
-//               <TextInput
-//                 style={styles.input}
-//                 placeholder="Enter 6-digit OTP"
-//                 value={form.otp}
-//                 onChangeText={(text) => updateField("otp", text)}
-//                 keyboardType="number-pad"
-//                 placeholderTextColor="#9CA3AF"
-//                 maxLength={6}
-//               />
-//             </View>
-
-//             <TouchableOpacity
-//               style={[
-//                 styles.sideButton,
-//                 (!canVerifyOtp || verifyingOtp) && styles.sideButtonDisabled,
-//               ]}
-//               activeOpacity={0.85}
-//               onPress={handleVerifyOtp}
-//               disabled={!canVerifyOtp || verifyingOtp}
-//             >
-//               {verifyingOtp ? (
-//                 <ActivityIndicator size="small" color={COLORS.white} />
-//               ) : (
-//                 <Text style={styles.sideButtonText}>Verify</Text>
-//               )}
-//             </TouchableOpacity>
-//           </View>
-
-//           <FormField
-//             label="Bride or Groom"
-//             placeholder="Enter Bride or Groom"
-//             value={form.gender}
-//             onChangeText={(text) => updateField("gender", text)}
-//             icon="people-outline"
-//           />
-
-//           <FormField
-//             label="Community / Religion"
-//             placeholder="Enter community or religion"
-//             value={form.community}
-//             onChangeText={(text) => updateField("community", text)}
-//             icon="albums-outline"
-//           />
-
-//           <FormField
-//             label="Location"
-//             placeholder="Enter location"
-//             value={form.location}
-//             onChangeText={(text) => updateField("location", text)}
-//             icon="location-outline"
-//           />
-
-//           <PasswordField
-//             label="Password"
-//             placeholder="Enter password"
-//             value={form.password}
-//             onChangeText={(text) => updateField("password", text)}
-//             showPassword={showPassword}
-//             setShowPassword={setShowPassword}
-//           />
-
-//           <PasswordField
-//             label="Confirm Password"
-//             placeholder="Re-enter password"
-//             value={form.confirmPassword}
-//             onChangeText={(text) => updateField("confirmPassword", text)}
-//             showPassword={showConfirmPassword}
-//             setShowPassword={setShowConfirmPassword}
-//           />
-
-//           <PrimaryButton
-//             title={registering ? "Creating Account..." : "Submit Registration"}
-//             onPress={handleRegister}
-//             style={{ marginTop: 22 }}
-//             disabled={registering}
-//           />
-//         </ScrollView>
-//       </KeyboardAvoidingView>
-//     </SafeAreaView>
-//   );
-// }
-
-// function FormField({
-//   label,
-//   placeholder,
-//   value,
-//   onChangeText,
-//   icon,
-//   keyboardType,
-//   autoCapitalize = "sentences",
-// }) {
-//   return (
-//     <View>
-//       <Text style={styles.label}>{label}</Text>
-//       <View style={styles.inputBox}>
-//         <Ionicons name={icon} size={20} color={COLORS.muted} />
-//         <TextInput
-//           style={styles.input}
-//           placeholder={placeholder}
-//           value={value}
-//           onChangeText={onChangeText}
-//           keyboardType={keyboardType}
-//           autoCapitalize={autoCapitalize}
-//           placeholderTextColor="#9CA3AF"
-//         />
-//       </View>
-//     </View>
-//   );
-// }
-
-// function PasswordField({
-//   label,
-//   placeholder,
-//   value,
-//   onChangeText,
-//   showPassword,
-//   setShowPassword,
-// }) {
-//   return (
-//     <View>
-//       <Text style={styles.label}>{label}</Text>
-//       <View style={styles.inputBox}>
-//         <Ionicons
-//           name="lock-closed-outline"
-//           size={20}
-//           color={COLORS.muted}
-//         />
-//         <TextInput
-//           style={styles.input}
-//           placeholder={placeholder}
-//           secureTextEntry={!showPassword}
-//           value={value}
-//           onChangeText={onChangeText}
-//           placeholderTextColor="#9CA3AF"
-//         />
-//         <TouchableOpacity
-//           activeOpacity={0.8}
-//           onPress={() => setShowPassword((prev) => !prev)}
-//         >
-//           <Ionicons
-//             name={showPassword ? "eye-off-outline" : "eye-outline"}
-//             size={20}
-//             color={COLORS.muted}
-//           />
-//         </TouchableOpacity>
-//       </View>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: COLORS.bg,
-//   },
-//   keyboardView: {
-//     flex: 1,
-//   },
-//   content: {
-//     padding: 18,
-//     paddingBottom: 120,
-//     flexGrow: 1,
-//     gap: 12,
-//   },
-//   label: {
-//     fontWeight: "900",
-//     color: COLORS.text,
-//     marginBottom: 8,
-//   },
-//   inputBox: {
-//     minHeight: 52,
-//     borderRadius: 16,
-//     backgroundColor: COLORS.white,
-//     borderWidth: 1,
-//     borderColor: COLORS.border,
-//     paddingHorizontal: 14,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: 10,
-//   },
-//   input: {
-//     flex: 1,
-//     fontWeight: "600",
-//     color: COLORS.text,
-//     paddingVertical: 0,
-//   },
-//   actionRow: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: 10,
-//   },
-//   rowInput: {
-//     flex: 1,
-//   },
-//   sideButton: {
-//     minWidth: 108,
-//     height: 52,
-//     borderRadius: 16,
-//     backgroundColor: COLORS.primary,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     paddingHorizontal: 14,
-//   },
-//   sideButtonDisabled: {
-//     backgroundColor: "#C4B5FD",
-//   },
-//   sideButtonText: {
-//     color: COLORS.white,
-//     fontWeight: "900",
-//     fontSize: 13,
-//   },
-// });
+ 
 
 
 
@@ -903,8 +325,9 @@ export default function RegisterScreen({ navigation }) {
         >
           <InlineMessage type={message.type} text={message.text} />
 
-          <DropdownField
+                    <DropdownField
             label="Profile Created For"
+            required
             selectedValue={form.profileCreatedFor}
             placeholder="Select profile relation"
             options={PROFILE_CREATED_FOR_OPTIONS}
@@ -913,23 +336,26 @@ export default function RegisterScreen({ navigation }) {
             onSelect={(value) => updateField("profileCreatedFor", value)}
           />
 
-          <OptionField
+                    <OptionField
             label="Select Gender"
+            required
             options={GENDER_OPTIONS}
             selectedValue={form.gender}
             onSelect={(value) => updateField("gender", value)}
           />
 
-          <FormField
+                    <FormField
             label="Full Name"
+            required
             placeholder="Enter full name"
             value={form.name}
             onChangeText={(text) => updateField("name", text)}
             icon="person-outline"
           />
 
-          <FormField
+                    <FormField
             label="Email Address"
+            required
             placeholder="Enter email address"
             value={form.email}
             onChangeText={(text) => updateField("email", text)}
@@ -938,7 +364,7 @@ export default function RegisterScreen({ navigation }) {
             autoCapitalize="none"
           />
 
-          <Text style={styles.label}>Phone Number</Text>
+          <RequiredLabel text="Phone Number" />
           <View style={styles.actionRow}>
             <View style={[styles.inputBox, styles.rowInput]}>
               <Ionicons name="call-outline" size={20} color={COLORS.muted} />
@@ -976,7 +402,7 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>OTP</Text>
+          <RequiredLabel text="OTP" />
           <View style={styles.actionRow}>
             <View style={[styles.inputBox, styles.rowInput]}>
               <Ionicons
@@ -1012,8 +438,9 @@ export default function RegisterScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <PasswordField
+                    <PasswordField
             label="Password"
+            required
             placeholder="Enter password"
             value={form.password}
             onChangeText={(text) => updateField("password", text)}
@@ -1021,8 +448,9 @@ export default function RegisterScreen({ navigation }) {
             setShowPassword={setShowPassword}
           />
 
-          <PasswordField
+                    <PasswordField
             label="Confirm Password"
+            required
             placeholder="Re-enter password"
             value={form.confirmPassword}
             onChangeText={(text) => updateField("confirmPassword", text)}
@@ -1042,10 +470,10 @@ export default function RegisterScreen({ navigation }) {
   );
 }
 
-function OptionField({ label, options, selectedValue, onSelect }) {
+function OptionField({ label, options, selectedValue, onSelect, required = false }) {
   return (
     <View>
-      <Text style={styles.label}>{label}</Text>
+      <RequiredLabel text={label} required={required} />
       <View style={styles.optionWrap}>
         {options.map((option) => {
           const selected = selectedValue === option;
@@ -1075,6 +503,7 @@ function OptionField({ label, options, selectedValue, onSelect }) {
 
 function DropdownField({
   label,
+  required = false,
   options,
   selectedValue,
   placeholder,
@@ -1084,7 +513,7 @@ function DropdownField({
 }) {
   return (
     <View>
-      <Text style={styles.label}>{label}</Text>
+      <RequiredLabel text={label} required={required} />
       <TouchableOpacity
         activeOpacity={0.85}
         style={styles.dropdownInput}
@@ -1147,6 +576,7 @@ function DropdownField({
 
 function FormField({
   label,
+  required = false,
   placeholder,
   value,
   onChangeText,
@@ -1156,7 +586,7 @@ function FormField({
 }) {
   return (
     <View>
-      <Text style={styles.label}>{label}</Text>
+      <RequiredLabel text={label} required={required} />
       <View style={styles.inputBox}>
         <Ionicons name={icon} size={20} color={COLORS.muted} />
         <TextInput
@@ -1173,8 +603,18 @@ function FormField({
   );
 }
 
+function RequiredLabel({ text, required = true }) {
+  return (
+    <Text style={styles.label}>
+      {text}
+      {required ? <Text style={{ color: COLORS.danger }}> *</Text> : null}
+    </Text>
+  );
+}
+
 function PasswordField({
   label,
+  required = false,
   placeholder,
   value,
   onChangeText,
@@ -1183,7 +623,7 @@ function PasswordField({
 }) {
   return (
     <View>
-      <Text style={styles.label}>{label}</Text>
+      <RequiredLabel text={label} required={required} />
       <View style={styles.inputBox}>
         <Ionicons
           name="lock-closed-outline"
@@ -1223,7 +663,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 18,
-    paddingBottom: 120,
+    paddingBottom: 140,
     flexGrow: 1,
     gap: 12,
   },
@@ -1231,6 +671,9 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     color: COLORS.text,
     marginBottom: 8,
+  },
+  requiredMark: {
+    color: COLORS.danger,
   },
   inputBox: {
     minHeight: 52,

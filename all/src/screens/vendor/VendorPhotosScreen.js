@@ -1,8 +1,10 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, TextInput, Image, KeyboardAvoidingView, Platform,
+  View, StyleSheet, ScrollView, TouchableOpacity,
+  Alert, Image, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import TextInput from '../../components/VendorTextInput';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import {ProfileContext} from '../../context/ProfileContext';
@@ -15,11 +17,15 @@ const createLocalPhotoId = (photo, index) =>
 const getServiceProfileKey = (category = '') =>
   String(category || 'default').trim().toLowerCase();
 
-const getServiceProfile = (svc = {}, category = '') => {
-  const profile = svc.serviceProfiles?.[getServiceProfileKey(category)] || {};
+const getServiceProfile = (svc = {}, category = "") => {
+  const serviceProfileKey = getServiceProfileKey(category);
+  const profile = svc.serviceProfiles?.[serviceProfileKey] || {};
+  const hasServiceProfiles = Object.keys(svc.serviceProfiles || {}).length > 0;
+  const allowLegacyFallback = serviceProfileKey === "default" || !hasServiceProfiles;
+
   return {
-    photos: Array.isArray(profile.photos) ? profile.photos : svc.photos || [],
-    serviceDescription: profile.serviceDescription ?? svc.serviceDescription ?? '',
+    photos: Array.isArray(profile.photos) ? profile.photos : allowLegacyFallback ? svc.photos || [] : [],
+    serviceDescription: profile.serviceDescription ?? (allowLegacyFallback ? svc.serviceDescription ?? "" : ""),
   };
 };
 
@@ -475,3 +481,6 @@ const styles = StyleSheet.create({
   saveBtn:         {height: 58, borderRadius: 18, backgroundColor: COLORS.primary, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginHorizontal: 16, marginTop: 20},
   saveBtnText:     {color: '#fff', fontWeight: 'bold', fontSize: 16},
 });
+
+
+

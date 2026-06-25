@@ -1,16 +1,16 @@
 import React, {useContext, useState} from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import TextInput from '../../components/VendorTextInput';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import {ProfileContext} from '../../context/ProfileContext';
@@ -265,7 +265,7 @@ export default function VendorRegisterScreen({navigation, route}) {
 
       <View style={styles.card}>
         {/* Business Name */}
-        <Label text="Business Name" />
+        <Label text="Business Name*" />
         <Input
           placeholder="Enter your business name"
           value={businessName}
@@ -273,14 +273,14 @@ export default function VendorRegisterScreen({navigation, route}) {
         />
 
         {/* Owner Name */}
-        <Label text="Owner / Contact Person Name" />
+        <Label text="Owner / Contact Person Name*" />
         <Input
           placeholder="Enter owner / contact name"
           value={ownerName}
           onChangeText={setOwnerName}
         />
 
-        <Label text="Email Address" />
+        <Label text="Email Address*" />
         <Input
           placeholder="Enter vendor email address"
           value={email}
@@ -290,7 +290,7 @@ export default function VendorRegisterScreen({navigation, route}) {
         />
 
         {/* Mobile + OTP */}
-        <Label text="Mobile Number" />
+        <Label text="Mobile Number*" />
         <View style={styles.otpRow}>
           <TextInput
             placeholder="Enter 10-digit mobile number"
@@ -322,7 +322,7 @@ export default function VendorRegisterScreen({navigation, route}) {
 
         {otpSent && !otpVerified && (
           <>
-            <Label text="Enter OTP" />
+            <Label text="Enter OTP*" />
             <View style={styles.otpRow}>
               <TextInput
                 placeholder="Enter 6-digit OTP"
@@ -347,7 +347,7 @@ export default function VendorRegisterScreen({navigation, route}) {
           </View>
         )}
 
-        <Label text="Services Offered" />
+        <Label text="Services Offered*" />
         <TouchableOpacity
           style={[styles.dropdown, servicesOpen && styles.dropdownOpen]}
           onPress={() => setServicesOpen(prev => !prev)}
@@ -414,7 +414,7 @@ export default function VendorRegisterScreen({navigation, route}) {
         )}
 
         {/* Password */}
-        <Label text="Password" />
+        <Label text="Password*" />
         <View style={styles.passwordRow}>
           <TextInput
             placeholder="Create password"
@@ -434,7 +434,7 @@ export default function VendorRegisterScreen({navigation, route}) {
         </View>
 
         {/* Confirm Password */}
-        <Label text="Confirm Password" />
+        <Label text="Confirm Password*" />
         <View style={styles.passwordRow}>
           <TextInput
             placeholder="Confirm your password"
@@ -481,7 +481,16 @@ export default function VendorRegisterScreen({navigation, route}) {
 }
 
 function Label({text}) {
-  return <Text style={styles.label}>{text}</Text>;
+  const cleanText = String(text || "");
+  const required = cleanText.endsWith("*");
+  const baseText = required ? cleanText.slice(0, -1).trimEnd() : cleanText;
+
+  return (
+    <Text style={styles.label}>
+      {baseText}
+      {required ? <Text style={{ color: COLORS.danger }}> *</Text> : null}
+    </Text>
+  );
 }
 
 function Input(props) {

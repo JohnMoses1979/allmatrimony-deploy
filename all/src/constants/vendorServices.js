@@ -1,4 +1,4 @@
-export const VENDOR_SERVICE_CATEGORIES = [
+﻿export const VENDOR_SERVICE_CATEGORIES = [
   {id: 1, label: 'Church Wedding Hall', icon: 'church'},
   {id: 2, label: 'Wedding Photography', icon: 'camera-retro'},
   {id: 3, label: 'Church Decoration', icon: 'spa'},
@@ -12,6 +12,7 @@ export const VENDOR_SERVICE_CATEGORIES = [
   {id: 11, label: 'Cleaning Services', icon: 'broom'},
   {id: 12, label: 'Sound & Lighting', icon: 'lightbulb'},
   {id: 13, label: 'Wedding Cake', icon: 'birthday-cake'},
+  {id: 14, label: 'Invitation Card Design & Printing', icon: 'envelope-open-text'},
 ];
 
 export const VENDOR_SERVICE_ICONS = VENDOR_SERVICE_CATEGORIES.reduce(

@@ -36,7 +36,10 @@ export default function AdminLoginScreen({ navigation }) {
     }
 
     if (cleanEmail === ADMIN_EMAIL && cleanPassword === ADMIN_PASSWORD) {
-      navigation.replace("AdminTabs");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "AdminTabs" }],
+      });
       return;
     }
 
@@ -82,7 +85,7 @@ export default function AdminLoginScreen({ navigation }) {
           </LinearGradient>
 
           <View style={styles.formCard}>
-            <Text style={styles.label}>Admin Email</Text>
+            <Text style={styles.label}>Admin Email<Text style={{ color: COLORS.danger }}> *</Text></Text>
             <View style={styles.inputBox}>
               <Ionicons name="mail-outline" size={20} color={COLORS.muted} />
               <TextInput
@@ -96,7 +99,7 @@ export default function AdminLoginScreen({ navigation }) {
               />
             </View>
 
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>Password<Text style={{ color: COLORS.danger }}> *</Text></Text>
             <View style={styles.inputBox}>
               <Ionicons
                 name="lock-closed-outline"

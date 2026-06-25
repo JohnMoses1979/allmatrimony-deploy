@@ -135,7 +135,6 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
-  Text,
   View,
   StyleSheet,
   Alert,
@@ -148,10 +147,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
 import Header from "../components/Header";
+import Text from "../components/AutoText";
 import PrimaryButton from "../components/PrimaryButton";
 import ImageZoomModal from "../components/ImageZoomModal";
 import { useMatrimony } from "../context/MatrimonyContext";
-import { translateServiceTitle } from "../constants/localization";
+import { translateServiceCategory, translateServiceTitle } from "../constants/localization";
 import { API_BASE_URL } from "../config/api";
 
 const DEFAULT_SERVICE_IMAGE = Asset.fromModule(
@@ -161,39 +161,20 @@ const DEFAULT_SERVICE_IMAGE = Asset.fromModule(
 const getBookingLabel = (service, language = "en") => {
   const category = String(service?.category || "").toLowerCase();
   const isTe = language === "te";
- 
+
   if (category.includes("function hall")) return isTe ? "ఫంక్షన్ హాల్ బుక్ చేయండి" : "Book Function Hall";
+  if (category.includes("invitation")) return isTe ? "ఇన్విటేషన్ కార్డ్ బుక్ చేయండి" : "Book Invitation Card";
   if (category.includes("car")) return isTe ? "కార్ బుక్ చేయండి" : "Book Bride/Groom Car";
-  if (category.includes("cooking")) return isTe ? "కుకింగ్ టీం బుక్ చేయండి" : "Book Cooking Team";
+  if (category.includes("cooking")) return isTe ? "కుకింగ్ టీమ్ బుక్ చేయండి" : "Book Cooking Team";
   if (category.includes("photography")) return isTe ? "ఫోటోగ్రఫీ బుక్ చేయండి" : "Book Photography";
   if (category.includes("makeup")) return isTe ? "మేకప్ ఆర్టిస్ట్ బుక్ చేయండి" : "Book Makeup Artist";
   if (category.includes("decoration")) return isTe ? "డెకరేషన్ బుక్ చేయండి" : "Book Decoration";
   if (category.includes("arkestra")) return isTe ? "ఆర్కెస్ట్రా బుక్ చేయండి" : "Book Arkestra";
-  if (category.includes("cleaning")) return isTe ? "క్లీనింగ్ టీం బుక్ చేయండి" : "Book Cleaning Team";
+  if (category.includes("cleaning")) return isTe ? "క్లీనింగ్ టీమ్ బుక్ చేయండి" : "Book Cleaning Team";
 
   return isTe ? "సర్వీస్ బుక్ చేయండి" : "Book Service";
 };
-
-const getLocalizedCategory = (category, language = "en") => {
-  const value = String(category || "");
-
-  if (language !== "te") {
-    return value;
-  }
-
-  const map = {
-    "Function Hall": "ఫంక్షన్ హాల్",
-    Photography: "ఫోటోగ్రఫీ",
-    Catering: "కేటరింగ్",
-    Makeup: "మేకప్",
-    Decoration: "డెకరేషన్",
-    Arkestra: "ఆర్కెస్ట్రా",
-    "Bride And Groom Car Services": "వధువు / వరుడు కార్ సర్వీసెస్",
-    Cleaning: "క్లీనింగ్",
-  };
-
-  return map[value] || value;
-};
+const getLocalizedCategory = (category, language = "en") => translateServiceCategory(language, category);
  
 const timeSlots = [
   "06:00 AM",
@@ -254,20 +235,32 @@ const SERVICE_DETAILS_TEXT = {
     requestedMsgPending: "Your {service} booking request is sent to vendor.",
     requestSent: "Request Sent",
     bookingDatePrefix: "Date:",
+    dateBookedTitle: "Date Booked",
+    dateNotAvailableTitle: "Date Not Available",
+    dateBookedMessage: "This date is already booked. Please choose a green available date.",
+    dateNotAvailableMessage: "This date range is not available. Please choose another range.",
+    available: "Available",
+    booked: "Booked",
+    fromLabel: "From:",
+    toLabel: "To:",
+    selectEndDate: "Select end date",
+    servicePhotos: "Service Photos",
+    serviceDetails: "Service Details",
+    packages: "Packages",
     bookingError: "Something went wrong.",
     sendError: "Unable to send request. Please try again.",
     registerError: "Unable to register. Please try again.",
   },
   te: {
     headerTitle: "సర్వీస్ వివరాలు",
-    headerSubtitle: "సర్వీస్ బుక్ చేసి షెడ్యూల్ ఎంచుకోండి",
+    headerSubtitle: "సర్వీస్‌ను బుక్ చేసి షెడ్యూల్ ఎంచుకోండి",
     noServiceSelected: "సర్వీస్ ఎంచుకోలేదు",
     noServiceFound: "సర్వీస్ కనబడలేదు",
     rating: "రేటింగ్",
     description: "వివరణ",
     bookingDatesTime: "బుకింగ్ తేదీలు & సమయం",
-    selectDateTime: "from date, to date and time ఎంచుకోండి",
-    dateHint: "ఈ రోజు తర్వాత రెండు రోజులకు నుంచి తేదీలు అందుబాటులో ఉంటాయి.",
+    selectDateTime: "ప్రారంభ తేదీ, ముగింపు తేదీ మరియు సమయం ఎంచుకోండి",
+    dateHint: "ఈ రోజు తర్వాత రెండు రోజులకు తేదీలు అందుబాటులో ఉంటాయి.",
     selectTime: "సమయం ఎంచుకోండి",
     cancel: "రద్దు",
     done: "సరే",
@@ -275,34 +268,45 @@ const SERVICE_DETAILS_TEXT = {
     bookingPending: "బుకింగ్ పెండింగ్",
     bookingApproved: "బుకింగ్ ఆమోదించబడింది",
     bookingRejected: "బుకింగ్ తిరస్కరించబడింది",
-    sendBookingRequest: "పే చేసి సర్వీస్ బుక్ చేయండి",
+    sendBookingRequest: "చెల్లించి సర్వీస్ బుక్ చేయండి",
     bookAgain: "మళ్లీ బుక్ చేయండి",
     bookFunctionHall: "ఫంక్షన్ హాల్ బుక్ చేయండి",
     bookBrideGroomCar: "వధువు/వరుడు కార్ బుక్ చేయండి",
-    bookCookingTeam: "కుకింగ్ టీం బుక్ చేయండి",
+    bookCookingTeam: "కుకింగ్ టీమ్ బుక్ చేయండి",
     bookPhotography: "ఫోటోగ్రఫీ బుక్ చేయండి",
     bookMakeupArtist: "మేకప్ ఆర్టిస్ట్ బుక్ చేయండి",
     bookDecoration: "డెకరేషన్ బుక్ చేయండి",
     bookArkestra: "ఆర్కెస్ట్రా బుక్ చేయండి",
-    bookCleaningTeam: "క్లీనింగ్ టీం బుక్ చేయండి",
-    bookingConfirmed: "బుకింగ్ కన్ఫర్మ్ అయింది",
-    bookingRequestSent: "మీ బుకింగ్ రిక్వెస్ట్ అడ్మిన్ ఆమోదం కోసం పంపబడింది.",
+    bookCleaningTeam: "క్లీనింగ్ టీమ్ బుక్ చేయండి",
+    bookingConfirmed: "బుకింగ్ నిర్ధారించబడింది",
+    bookingRequestSent: "మీ బుకింగ్ అభ్యర్థన వెండర్ ఆమోదానికి పంపబడింది.",
     bookingApprovedNote: "అడ్మిన్ మీ సర్వీస్ బుకింగ్‌ను ఆమోదించారు.",
     bookingRejectedNote: "అడ్మిన్ మీ సర్వీస్ బుకింగ్‌ను తిరస్కరించారు.",
-    registrationCompletedConfirmed: "రిజిస్ట్రేషన్ పూర్తయి బుకింగ్ కన్ఫర్మ్ అయింది.",
+    registrationCompletedConfirmed: "రిజిస్ట్రేషన్ పూర్తయ్యింది, బుకింగ్ నిర్ధారించబడింది.",
     registrationCompletedSent:
-      "రిజిస్ట్రేషన్ పూర్తయి బుకింగ్ రిక్వెస్ట్ అడ్మిన్ ఆమోదం కోసం పంపబడింది.",
+      "రిజిస్ట్రేషన్ పూర్తయ్యింది, బుకింగ్ అభ్యర్థన వెండర్ ఆమోదానికి పంపబడింది.",
     requestedMsgApproved: "మీ {service} బుకింగ్ ఆమోదించబడింది.",
     requestedMsgRejected: "మీ {service} బుకింగ్ తిరస్కరించబడింది.",
-    requestedMsgPending: "మీ {service} బుకింగ్ రిక్వెస్ట్ అడ్మిన్‌కు పంపబడింది.",
-    requestSent: "రిక్వెస్ట్ పంపబడింది",
+    requestedMsgPending: "మీ {service} బుకింగ్ అభ్యర్థన వెండర్‌కు పంపబడింది.",
+    requestSent: "అభ్యర్థన పంపబడింది",
     bookingDatePrefix: "తేదీ:",
+    dateBookedTitle: "తేదీ బుక్ అయింది",
+    dateNotAvailableTitle: "తేదీ అందుబాటులో లేదు",
+    dateBookedMessage: "ఈ తేదీ ఇప్పటికే బుక్ అయింది. దయచేసి అందుబాటులో ఉన్న గ్రీన్ తేదీని ఎంచుకోండి.",
+    dateNotAvailableMessage: "ఈ తేదీ పరిధి అందుబాటులో లేదు. దయచేసి వేరే పరిధిని ఎంచుకోండి.",
+    available: "అందుబాటులో ఉంది",
+    booked: "బుక్ అయింది",
+    fromLabel: "నుంచి:",
+    toLabel: "వరకు:",
+    selectEndDate: "ముగింపు తేదీ ఎంచుకోండి",
+    servicePhotos: "సేవ ఫోటోలు",
+    serviceDetails: "సేవ వివరాలు",
+    packages: "ప్యాకేజీలు",
     bookingError: "ఏదో తప్పు జరిగింది.",
-    sendError: "రిక్వెస్ట్ పంపలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
-    registerError: "రిజిస్టర్ చేయలేకపోయాం. మళ్లీ ప్రయత్నించండి.",
+    sendError: "అభ్యర్థన పంపలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+    registerError: "రిజిస్టర్ చేయలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
   },
 };
- 
 const formatDateValue = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -382,6 +386,7 @@ export default function ServiceDetailsScreen({ navigation, route }) {
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerUri, setViewerUri] = useState("");
   const [viewerTitle, setViewerTitle] = useState("");
+  const isInvitationService = String(service?.category || service?.title || "").toLowerCase().includes("invitation");
  
   const calendarDays = useMemo(
     () => buildCalendarDays(calendarMonth),
@@ -518,6 +523,21 @@ export default function ServiceDetailsScreen({ navigation, route }) {
       return;
     }
 
+    const invitationCategory = String(service?.category || service?.title || "").toLowerCase();
+    if (invitationCategory.includes("invitation")) {
+      navigation.navigate("InvitationCard", {
+        service,
+        bookingDetails,
+        customerDetails: {
+          name: myProfile?.name || "",
+          phone: myProfile?.phone || "",
+          email: myProfile?.email || "",
+          location: myProfile?.location || "",
+        },
+      });
+      return;
+    }
+
     navigation.navigate("ServiceBookingPayment", {
       service,
       bookingDetails,
@@ -529,7 +549,6 @@ export default function ServiceDetailsScreen({ navigation, route }) {
       },
     });
   };
- 
   const changeMonth = (offset) => {
     setCalendarMonth(
       (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1)
@@ -540,10 +559,18 @@ export default function ServiceDetailsScreen({ navigation, route }) {
     const nextDate = formatDateValue(date);
 
     if (bookedDateSet.has(nextDate)) {
-      Alert.alert("Date Booked", "This date is already booked. Please choose a green available date.");
+      Alert.alert(t.dateBookedTitle, t.dateBookedMessage);
       return;
     }
- 
+
+    if (isInvitationService) {
+      setBookingDate(nextDate);
+      setBookingEndDate(nextDate);
+      setBookingTime("Any Time");
+      closeCalendar();
+      return;
+    }
+
     if (!bookingDate || (bookingDate && bookingEndDate)) {
       setBookingDate(nextDate);
       setBookingEndDate("");
@@ -562,10 +589,7 @@ export default function ServiceDetailsScreen({ navigation, route }) {
     const hasBookedDateInRange = selectedRange.some((value) => bookedDateSet.has(value));
 
     if (hasBookedDateInRange) {
-      Alert.alert(
-        "Date Not Available",
-        "Your selected range includes a booked red date. Please select an available green range."
-      );
+      Alert.alert(t.dateNotAvailableTitle, t.dateNotAvailableMessage);
       return;
     }
  
@@ -683,19 +707,19 @@ export default function ServiceDetailsScreen({ navigation, route }) {
           <View style={styles.calendarLegend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendAvailable]} />
-              <Text style={styles.legendText}>Available</Text>
+              <Text style={styles.legendText}>{t.available}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendBooked]} />
-              <Text style={styles.legendText}>Booked</Text>
+              <Text style={styles.legendText}>{t.booked}</Text>
             </View>
           </View>
 
           {!!bookingDate && (
             <View style={styles.selectedScheduleBox}>
               <Text style={styles.selectedScheduleText}>
-                From: {bookingDate}
-                {bookingEndDate ? `  To: ${bookingEndDate}` : "  Select end date"}
+                {t.fromLabel} {bookingDate}
+                {bookingEndDate ? `  ${t.toLabel} ${bookingEndDate}` : `  ${t.selectEndDate}`}
               </Text>
             </View>
           )}
@@ -798,7 +822,7 @@ export default function ServiceDetailsScreen({ navigation, route }) {
 
           {Array.isArray(service.galleryPhotos) && service.galleryPhotos.length > 1 && (
             <>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Service Photos</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.servicePhotos}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.galleryRow}>
                 {service.galleryPhotos.filter((photo) => !photo?.isCover).map((photo, index) => (
                   <TouchableOpacity
@@ -818,7 +842,7 @@ export default function ServiceDetailsScreen({ navigation, route }) {
 
           {service.serviceDetails && Object.keys(service.serviceDetails).length > 0 && (
             <>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Service Details</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.serviceDetails}</Text>
               <View style={styles.detailList}>
                 {Object.entries(service.serviceDetails)
                   .filter(([, value]) => String(value || "").trim())
@@ -834,7 +858,7 @@ export default function ServiceDetailsScreen({ navigation, route }) {
 
           {Array.isArray(service.packages) && service.packages.length > 0 && (
             <>
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Packages</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.packages}</Text>
               {service.packages.map((pkg, index) => (
                 <View key={pkg.id || index} style={[styles.packageBox, { borderColor: theme.border, backgroundColor: theme.bg }]}>
                   <View style={styles.packageTop}>
@@ -1329,3 +1353,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

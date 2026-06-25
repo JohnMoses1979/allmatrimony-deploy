@@ -1,14 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -17,10 +16,13 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
 import Header from "../components/Header";
+import Text from "../components/AutoText";
+import TextInput from "../components/AutoTranslateTextInput";
 import InlineMessage from "../components/InlineMessage";
 import PrimaryButton from "../components/PrimaryButton";
 import { API_BASE_URL, toApiAssetUrl } from "../config/api";
 import { COLORS } from "../constants/colors";
+import { createTextHelper } from "../constants/localization";
 import { getStrings } from "../constants/i18n";
 import { useMatrimony } from "../context/MatrimonyContext";
 
@@ -36,15 +38,325 @@ const profileCreatedForOptions = [
 ];
 const maritalOptions = ["Never Married", "Divorced", "Widowed"];
 
+const RELIGION_OPTIONS = [
+  "Hindu",
+  "Christian",
+  "Muslim",
+  "Sikh",
+  "Jain",
+  "Buddhist",
+  "Parsi",
+  "Jewish",
+  "Other",
+];
+
+const COMMUNITY_OPTIONS_BY_RELIGION = {
+  Hindu: [
+    "Brahmin",
+    "Kshatriya",
+    "Vaishya",
+    "Yadava",
+    "Reddy",
+    "Kamma",
+    "Kapu",
+    "Velama",
+    "Naidu",
+    "Chettiar",
+    "Vokkaliga",
+    "Lingayat",
+    "Nair",
+    "Ezhava",
+    "Maratha",
+    "Rajput",
+    "Jat",
+    "Agarwal",
+    "Bania",
+    "Scheduled Caste (SC)",
+    "Scheduled Tribe (ST)",
+    "Other Backward Class (OBC)",
+    "Others",
+  ],
+  Christian: [
+    "Roman Catholic",
+    "CSI",
+    "CNI",
+    "Pentecostal",
+    "Baptist",
+    "Methodist",
+    "Lutheran",
+    "Orthodox",
+    "Jacobite",
+    "Seventh-day Adventist",
+    "Evangelical",
+    "Born Again",
+    "Independent Church",
+    "Others",
+  ],
+  Muslim: [
+    "Sunni",
+    "Shia",
+    "Bohra",
+    "Sufi",
+    "Ahmadiyya",
+    "Mappila",
+    "Pathan",
+    "Syed",
+    "Sheikh",
+    "Ansari",
+    "Others",
+  ],
+  Sikh: [
+    "Jat Sikh",
+    "Ramgarhia",
+    "Arora",
+    "Khatri",
+    "Lubana",
+    "Mazhabi Sikh",
+    "Others",
+  ],
+  Jain: ["Digambar", "Shwetambar", "Sthanakvasi", "Terapanthi", "Others"],
+  Buddhist: ["Others"],
+  Parsi: ["Others"],
+  Jewish: ["Others"],
+  Other: ["Others"],
+};
+
+const CASTE_OPTIONS_BY_RELIGION_AND_COMMUNITY = {
+  Hindu: {
+    Brahmin: ["Niyogi", "Vaidiki", "Smartha", "Madhwa", "Iyer", "Iyengar", "Havyaka", "Chitpavan", "Gaur", "Saraswat"],
+    Reddy: ["Panta Reddy", "Motati Reddy", "Pakanati Reddy", "Pedakanti Reddy", "Goudati Reddy"],
+    Kamma: ["Chowdary", "Illuvellani", "Gampa", "Kakatiya Kamma"],
+    Kapu: ["Balija", "Telaga", "Ontari", "Turpu Kapu", "Munnuru Kapu"],
+    Naidu: ["Balija Naidu", "Gavara Naidu", "Kamma Naidu"],
+    Yadava: ["Golla", "Konar", "Ahir", "Krishnaut"],
+    Chettiar: ["Others"],
+    Vokkaliga: ["Others"],
+    Lingayat: ["Others"],
+    Nair: ["Others"],
+    Ezhava: ["Others"],
+    Maratha: ["Others"],
+    Rajput: ["Others"],
+    Jat: ["Others"],
+    Agarwal: ["Others"],
+    Bania: ["Others"],
+    "Scheduled Caste (SC)": ["Others"],
+    "Scheduled Tribe (ST)": ["Others"],
+    "Other Backward Class (OBC)": ["Others"],
+    Others: ["Others"],
+    Kshatriya: ["Others"],
+    Vaishya: ["Others"],
+  },
+  Christian: {
+    "Roman Catholic": ["Latin Catholic", "Syrian Catholic", "Anglo-Indian Catholic"],
+    CSI: ["Telugu CSI", "Tamil CSI", "Malayalam CSI"],
+    CNI: ["Others"],
+    Pentecostal: ["Others"],
+    Baptist: ["Others"],
+    Methodist: ["Others"],
+    Lutheran: ["Others"],
+    Orthodox: ["Others"],
+    Jacobite: ["Others"],
+    "Seventh-day Adventist": ["Others"],
+    Evangelical: ["Others"],
+    "Born Again": ["Others"],
+    "Independent Church": ["Others"],
+    Others: ["Others"],
+  },
+  Muslim: {
+    Sunni: ["Hanafi", "Shafi", "Maliki", "Hanbali"],
+    Shia: ["Others"],
+    Bohra: ["Others"],
+    Sufi: ["Others"],
+    Ahmadiyya: ["Others"],
+    Mappila: ["Others"],
+    Pathan: ["Others"],
+    Syed: ["Others"],
+    Sheikh: ["Others"],
+    Ansari: ["Others"],
+    Others: ["Others"],
+  },
+  Sikh: {
+    "Jat Sikh": ["Others"],
+    Ramgarhia: ["Others"],
+    Arora: ["Others"],
+    Khatri: ["Others"],
+    Lubana: ["Others"],
+    "Mazhabi Sikh": ["Others"],
+    Others: ["Others"],
+  },
+  Jain: {
+    Digambar: ["Others"],
+    Shwetambar: ["Others"],
+    Sthanakvasi: ["Others"],
+    Terapanthi: ["Others"],
+    Others: ["Others"],
+  },
+  Buddhist: {
+    Others: ["Others"],
+  },
+  Parsi: {
+    Others: ["Others"],
+  },
+  Jewish: {
+    Others: ["Others"],
+  },
+  Other: {
+    Others: ["Others"],
+  },
+};
+
+const ALL_COMMUNITY_OPTIONS = [
+  "Brahmin",
+  "Kshatriya",
+  "Vaishya",
+  "Yadava",
+  "Reddy",
+  "Kamma",
+  "Kapu",
+  "Velama",
+  "Naidu",
+  "Chettiar",
+  "Vokkaliga",
+  "Lingayat",
+  "Nair",
+  "Ezhava",
+  "Maratha",
+  "Rajput",
+  "Jat",
+  "Agarwal",
+  "Bania",
+  "Scheduled Caste (SC)",
+  "Scheduled Tribe (ST)",
+  "Other Backward Class (OBC)",
+  "Roman Catholic",
+  "CSI",
+  "CNI",
+  "Pentecostal",
+  "Baptist",
+  "Methodist",
+  "Lutheran",
+  "Orthodox",
+  "Jacobite",
+  "Seventh-day Adventist",
+  "Evangelical",
+  "Born Again",
+  "Independent Church",
+  "Sunni",
+  "Shia",
+  "Bohra",
+  "Sufi",
+  "Ahmadiyya",
+  "Mappila",
+  "Pathan",
+  "Syed",
+  "Sheikh",
+  "Ansari",
+  "Jat Sikh",
+  "Ramgarhia",
+  "Arora",
+  "Khatri",
+  "Lubana",
+  "Mazhabi Sikh",
+  "Digambar",
+  "Shwetambar",
+  "Sthanakvasi",
+  "Terapanthi",
+  "Others",
+];
+
+const PREFERRED_COMMUNITY_OPTIONS = ["Any", "Same community", ...ALL_COMMUNITY_OPTIONS];
+
+const getCommunityOptionsForReligion = (religion = "") => {
+  const options = COMMUNITY_OPTIONS_BY_RELIGION[religion];
+
+  if (options && options.length > 0) {
+    return options;
+  }
+
+  return ALL_COMMUNITY_OPTIONS;
+};
+
+const getCasteOptionsForSelection = (religion = "", community = "") => {
+  const religionMap = CASTE_OPTIONS_BY_RELIGION_AND_COMMUNITY[religion];
+  const options = religionMap?.[community];
+
+  if (options && options.length > 0) {
+    return options;
+  }
+
+  if (community) {
+    return ["Others"];
+  }
+
+  return [];
+};
+
 const DEFAULT_PROFILE_IMAGE = Asset.fromModule(
   require("../../assets/Images/all-hero.png")
 ).uri;
 
 const IMAGE_MEDIA_TYPES = ["images"];
+const DOB_YEAR_RANGE = 80;
+
+const pad2 = (value) => String(value).padStart(2, "0");
+
+const parseDobString = (value) => {
+  if (!value) return null;
+
+  const text = String(value).trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const date = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const date = new Date(Number(slashMatch[3]), Number(slashMatch[2]) - 1, Number(slashMatch[1]));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const fallback = new Date(text);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+};
+
+const formatDobString = (date) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
+};
+
+const buildCalendarDays = (monthDate) => {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+
+  for (let i = 0; i < firstDay; i += 1) {
+    cells.push(null);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push(new Date(year, month, day));
+  }
+
+  return cells;
+};
+
+const formatMonthTitle = (date) =>
+  date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
 export default function ProfileCreateEditScreen({ navigation }) {
   const { myProfile, saveMyProfile, language } = useMatrimony();
   const t = getStrings(language).profileEdit;
+  const tr = createTextHelper(language);
+  const [openDropdown, setOpenDropdown] = useState("");
+  const [showDobPicker, setShowDobPicker] = useState(false);
+  const [dobMonth, setDobMonth] = useState(() => parseDobString(myProfile?.dob) || new Date());
+
   const [submitMessage, setSubmitMessage] = useState("");
   const [submitMessageType, setSubmitMessageType] = useState("info");
   const [showSuccessOk, setShowSuccessOk] = useState(false);
@@ -80,6 +392,20 @@ export default function ProfileCreateEditScreen({ navigation }) {
     image: toApiAssetUrl(myProfile?.image || DEFAULT_PROFILE_IMAGE),
   });
 
+  const communityOptions = useMemo(
+    () => getCommunityOptionsForReligion(form.religion),
+    [form.religion]
+  );
+  const casteOptions = useMemo(
+    () => getCasteOptionsForSelection(form.religion, form.community),
+    [form.religion, form.community]
+  );
+
+  useEffect(() => {
+    const parsedDob = parseDobString(form.dob) || parseDobString(myProfile?.dob) || new Date();
+    setDobMonth(parsedDob);
+  }, [form.dob, myProfile?.dob]);
+
   const updateField = (key, value) => {
     if (submitMessage) {
       setSubmitMessage("");
@@ -89,10 +415,23 @@ export default function ProfileCreateEditScreen({ navigation }) {
       setShowSuccessOk(false);
     }
 
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        [key]: value,
+      };
+
+      if (key === "religion") {
+        next.community = "";
+        next.caste = "";
+      }
+
+      if (key === "community") {
+        next.caste = "";
+      }
+
+      return next;
+    });
   };
 
   const handleSuccessAcknowledge = () => {
@@ -148,10 +487,10 @@ export default function ProfileCreateEditScreen({ navigation }) {
       return uploadedImagePath;
     } catch (error) {
       setSubmitMessageType("error");
-      setSubmitMessage(error.message || "Unable to upload image.");
+      setSubmitMessage(error.message || tr("Unable to upload image.", "చిత్రాన్ని అప్‌లోడ్ చేయలేకపోయాం."));
 
       if (Platform.OS !== "web") {
-        Alert.alert("Upload Failed", error.message || "Unable to upload image.");
+        Alert.alert(tr("Upload Failed", "అప్‌లోడ్ విఫలమైంది"), error.message || tr("Unable to upload image.", "చిత్రాన్ని అప్‌లోడ్ చేయలేకపోయాం."));
       }
 
       return null;
@@ -167,8 +506,8 @@ export default function ProfileCreateEditScreen({ navigation }) {
 
       if (!permission.granted) {
         Alert.alert(
-          "Camera Permission Required",
-          "Please allow camera permission to take profile photo."
+          tr("Camera Permission Required", "కెమెరా అనుమతి అవసరం"),
+          tr("Please allow camera permission to take profile photo.", "ప్రొఫైల్ ఫోటో తీయడానికి కెమెరా అనుమతి ఇవ్వండి.")
         );
         return;
       }
@@ -185,7 +524,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
         await uploadProfileImage(result.assets[0]);
       }
     } catch (error) {
-      Alert.alert("Camera Error", "Unable to open camera. Please try again.");
+      Alert.alert(tr("Camera Error", "కెమెరా లోపం"), tr("Unable to open camera. Please try again.", "కెమెరాను తెరవలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి."));
     }
   };
 
@@ -198,8 +537,8 @@ export default function ProfileCreateEditScreen({ navigation }) {
 
         if (!permission.granted) {
           Alert.alert(
-            "Gallery Permission Required",
-            "Please allow gallery permission to select profile photo."
+            tr("Gallery Permission Required", "గ్యాలరీ అనుమతి అవసరం"),
+            tr("Please allow gallery permission to select profile photo.", "ప్రొఫైల్ ఫోటో ఎంచుకోవడానికి గ్యాలరీ అనుమతి ఇవ్వండి.")
           );
           return;
         }
@@ -216,7 +555,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
         await uploadProfileImage(result.assets[0]);
       }
     } catch (error) {
-      Alert.alert("Image Error", "Unable to select image. Please try again.");
+      Alert.alert(tr("Image Error", "చిత్ర లోపం"), tr("Unable to select image. Please try again.", "చిత్రాన్ని ఎంచుకోలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి."));
     }
   };
 
@@ -257,7 +596,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
 
     if (!form.community.trim()) {
       setSubmitMessageType("error");
-      setSubmitMessage("Please enter community.");
+      setSubmitMessage("Please select community.");
       return false;
     }
 
@@ -290,7 +629,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
     const result = await saveMyProfile(form);
 
     if (!result?.success) {
-      const message = result?.message || "Unable to save profile.";
+      const message = result?.message || tr("Unable to save profile.", "ప్రొఫైల్ సేవ్ చేయలేకపోయాం.");
       setSubmitMessageType("error");
       setSubmitMessage(message);
 
@@ -358,10 +697,9 @@ export default function ProfileCreateEditScreen({ navigation }) {
             </View>
 
             <View style={styles.photoInfo}>
-              <Text style={styles.photoTitle}>Profile Photo</Text>
+              <Text style={styles.photoTitle}>{tr("Profile Photo", "ప్రొఫైల్ ఫోటో")}</Text>
               <Text style={styles.photoText}>
-                Tap camera icon to take photo. Use Choose to select from
-                gallery.
+                {tr("Tap camera icon to take photo. Use Choose to select from gallery.", "ఫోటో తీయడానికి కెమెరా ఐకాన్‌ను నొక్కండి. గ్యాలరీ నుండి ఎంచుకోవడానికి Choose వాడండి.")}
               </Text>
 
               <View style={styles.photoActions}>
@@ -379,7 +717,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
                     size={17}
                     color={COLORS.maroon || COLORS.primary}
                   />
-                  <Text style={styles.chooseBtnText}>Choose</Text>
+                  <Text style={styles.chooseBtnText}>{tr("Choose", "ఎంచుకోండి")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -396,22 +734,22 @@ export default function ProfileCreateEditScreen({ navigation }) {
                     size={17}
                     color={COLORS.danger}
                   />
-                  <Text style={styles.removeBtnText}>Remove</Text>
+                  <Text style={styles.removeBtnText}>{tr("Remove", "తొలగించు")}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Basic Details</Text>
+          <Text style={styles.sectionTitle}>{tr("Basic Details", "ప్రాథమిక వివరాలు")}</Text>
 
           <FormInput
-            label="Full Name"
-            placeholder="Enter full name"
+            label={tr("Full Name", "పూర్తి పేరు")}
+            placeholder={tr("Enter full name", "పూర్తి పేరు నమోదు చేయండి")}
             value={form.name}
             onChangeText={(text) => updateField("name", text)}
           />
 
-          <Text style={styles.label}>Profile Created For</Text>
+          <Text style={styles.label}>{tr("Profile Created For", "ప్రొఫైల్ ఎవరి కోసం")}</Text>
           <View style={styles.optionWrap}>
             {profileCreatedForOptions.map((item) => (
               <TouchableOpacity
@@ -435,7 +773,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
             ))}
           </View>
 
-          <Text style={styles.label}>Gender</Text>
+          <Text style={styles.label}>{tr("Gender", "లింగం")}</Text>
           <View style={styles.optionRow}>
             {genderOptions.map((item) => (
               <TouchableOpacity
@@ -466,7 +804,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
 
           <View style={styles.twoCol}>
             <FormInput
-              label="Age"
+              label={tr("Age", "వయసు")}
               placeholder="25"
               value={String(form.age)}
               keyboardType="number-pad"
@@ -475,7 +813,7 @@ export default function ProfileCreateEditScreen({ navigation }) {
             />
 
             <FormInput
-              label="Height"
+              label={tr("Height", "ఎత్తు")}
               placeholder="5'7"
               value={form.height}
               onChangeText={(text) => updateField("height", text)}
@@ -483,16 +821,25 @@ export default function ProfileCreateEditScreen({ navigation }) {
             />
           </View>
 
-          <FormInput
-            label="Date of Birth"
-            placeholder="DD/MM/YYYY"
-            value={form.dob}
-            onChangeText={(text) => updateField("dob", text)}
-          />
+                    <Text style={styles.label}>{tr("Date of Birth", "పుట్టిన తేదీ")}</Text>
+          <TouchableOpacity
+            style={styles.dobTrigger}
+            activeOpacity={0.85}
+            onPress={() => {
+              setDobMonth(parseDobString(form.dob) || new Date());
+              setShowDobPicker(true);
+            }}
+          >
+            <Ionicons name="calendar-outline" size={20} color={COLORS.muted} />
+            <Text style={[styles.dobValue, !form.dob && styles.dobPlaceholder]} numberOfLines={1}>
+              {form.dob || "DD/MM/YYYY"}
+            </Text>
+            <Ionicons name="chevron-down-outline" size={18} color={COLORS.muted} />
+          </TouchableOpacity>
 
           <FormInput
-            label="Phone Number"
-            placeholder="Enter phone number"
+            label={tr("Phone Number", "ఫోన్ నంబర్")}
+            placeholder={tr("Enter phone number", "ఫోన్ నంబర్ నమోదు చేయండి")}
             value={form.phone}
             keyboardType="phone-pad"
             maxLength={10}
@@ -502,134 +849,72 @@ export default function ProfileCreateEditScreen({ navigation }) {
           />
 
           <FormInput
-            label="Email"
+            label={tr("Email", "ఇమెయిల్")}
             placeholder="Enter email"
             value={form.email}
             keyboardType="email-address"
             onChangeText={(text) => updateField("email", text)}
           />
 
-          <Text style={styles.sectionTitle}>Community Details</Text>
+          <Text style={styles.sectionTitle}>{tr("Community Details", "మతం / కమ్యూనిటీ వివరాలు")}</Text>
 
-          <View style={styles.twoCol}>
-            <FormInput
-              label="Religion"
-              placeholder="Hindu / Christian / Muslim"
-              value={form.religion}
-              onChangeText={(text) => updateField("religion", text)}
-              containerStyle={styles.flexOne}
-            />
+          <DropdownField
+            label={tr("Religion", "మతం")}
+            placeholder={tr("Select religion", "మతం ఎంచుకోండి")}
+            value={form.religion}
+            options={RELIGION_OPTIONS}
+            icon="book-outline"
+            isOpen={openDropdown === "religion"}
+            onToggle={() => setOpenDropdown((current) => (current === "religion" ? "" : "religion"))}
+            onSelect={(value) => {
+              updateField("religion", value);
+              setOpenDropdown("");
+            }}
+          />
 
-            <FormInput
-              label="Community"
-              placeholder="Community"
-              value={form.community}
-              onChangeText={(text) => updateField("community", text)}
-              containerStyle={styles.flexOne}
-            />
-          </View>
+          <DropdownField
+            label={tr("Community", "కమ్యూనిటీ")}
+            placeholder={form.religion ? tr("Select community", "కమ్యూనిటీ ఎంచుకోండి") : tr("Select religion first", "ముందు మతం ఎంచుకోండి")}
+            value={form.community}
+            options={communityOptions}
+            icon="people-outline"
+            disabled={!form.religion}
+            isOpen={openDropdown === "community"}
+            onToggle={() => setOpenDropdown((current) => (current === "community" ? "" : "community"))}
+            onSelect={(value) => {
+              updateField("community", value);
+              setOpenDropdown("");
+            }}
+          />
 
-          <FormInput
-            label="Caste / Sub Community"
-            placeholder="Optional"
+          <DropdownField
+            label={tr("Caste / Sub Community", "కులం / ఉప-కమ్యూనిటీ")}
+            placeholder={form.community ? tr("Select caste / sub community", "కులం / ఉప-కమ్యూనిటీ ఎంచుకోండి") : tr("Select community first", "ముందు కమ్యూనిటీ ఎంచుకోండి")}
             value={form.caste}
-            onChangeText={(text) => updateField("caste", text)}
+            options={casteOptions}
+            icon="git-branch-outline"
+            disabled={!form.community}
+            isOpen={openDropdown === "caste"}
+            onToggle={() => setOpenDropdown((current) => (current === "caste" ? "" : "caste"))}
+            onSelect={(value) => {
+              updateField("caste", value);
+              setOpenDropdown("");
+            }}
           />
 
           <FormInput
-            label="Location"
-            placeholder="City, State"
+            label={tr("Location", "స్థానం")}
+            placeholder={tr("City, State", "నగరం, రాష్ట్రం")}
             value={form.location}
             onChangeText={(text) => updateField("location", text)}
           />
 
-          <Text style={styles.sectionTitle}>Education & Career</Text>
+          <Text style={styles.sectionTitle}>{tr("About Profile", "ప్రొఫైల్ గురించి")}</Text>
 
-          <FormInput
-            label="Education"
-            placeholder="B.Tech / MBA / Degree"
-            value={form.education}
-            onChangeText={(text) => updateField("education", text)}
-          />
-
-          <FormInput
-            label="Job / Profession"
-            placeholder="Software Engineer"
-            value={form.job}
-            onChangeText={(text) => updateField("job", text)}
-          />
-
-          <FormInput
-            label="Annual Income"
-            placeholder="₹8 LPA"
-            value={form.income}
-            onChangeText={(text) => updateField("income", text)}
-          />
-
-          <Text style={styles.sectionTitle}>Family Details</Text>
-
-          <Text style={styles.label}>Marital Status</Text>
-          <View style={styles.optionWrap}>
-            {maritalOptions.map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.smallChip,
-                  form.maritalStatus === item && styles.activeChip,
-                ]}
-                onPress={() => updateField("maritalStatus", item)}
-                activeOpacity={0.85}
-              >
-                <Text
-                  style={[
-                    styles.smallChipText,
-                    form.maritalStatus === item && styles.activeChipText,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <FormInput
-            label="Family Type"
-            placeholder="Nuclear / Joint"
-            value={form.familyType}
-            onChangeText={(text) => updateField("familyType", text)}
-          />
-
-          <View style={styles.twoCol}>
-            <FormInput
-              label="Father Name"
-              placeholder="Father name"
-              value={form.fatherName}
-              onChangeText={(text) => updateField("fatherName", text)}
-              containerStyle={styles.flexOne}
-            />
-
-            <FormInput
-              label="Mother Name"
-              placeholder="Mother name"
-              value={form.motherName}
-              onChangeText={(text) => updateField("motherName", text)}
-              containerStyle={styles.flexOne}
-            />
-          </View>
-
-          <FormInput
-            label="Siblings"
-            placeholder="Example: 1 Brother, 1 Sister"
-            value={form.siblings}
-            onChangeText={(text) => updateField("siblings", text)}
-          />
-
-          <Text style={styles.sectionTitle}>About Profile</Text>
-
-          <Text style={styles.label}>About</Text>
+          <Text style={styles.label}>{tr("About", "గురించి")}</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Write about yourself, family values and expectations"
+            placeholder={tr("Write about yourself, family values and expectations", "మీ గురించి, కుటుంబ విలువలు మరియు ఆశయాలను వ్రాయండి")}
             value={form.about}
             onChangeText={(text) => updateField("about", text)}
             multiline
@@ -637,49 +922,143 @@ export default function ProfileCreateEditScreen({ navigation }) {
             placeholderTextColor="#9CA3AF"
           />
 
-          <FormInput
-            label="Profile Image URL"
-            placeholder="https://image-url.com/photo.jpg"
-            value={form.image}
-            onChangeText={(text) => updateField("image", text)}
-          />
+        
 
           <FormInput
-            label="Habits"
-            placeholder="Reading, travel, fitness, music"
+            label={tr("Habits", "అలవాట్లు")}
+            placeholder={tr("Reading, travel, fitness, music", "చదవడం, ప్రయాణం, ఫిట్‌నెస్, సంగీతం")}
             value={form.habits}
             onChangeText={(text) => updateField("habits", text)}
           />
 
-          <Text style={styles.sectionTitle}>Partner Preferences</Text>
+          <Text style={styles.sectionTitle}>{tr("Partner Preferences", "భాగస్వామి ప్రాధాన్యతలు")}</Text>
 
           <FormInput
-            label="Preferred Age"
-            placeholder="Example: 24 - 30"
+            label={tr("Preferred Age", "ఇష్టమైన వయసు")}
+            placeholder={tr("Example: 24 - 30", "ఉదాహరణ: 24 - 30")}
             value={form.partnerAge}
             onChangeText={(text) => updateField("partnerAge", text)}
           />
 
-          <FormInput
-            label="Preferred Community"
-            placeholder="Any / Same community"
+          <DropdownField
+            label={tr("Preferred Community", "ఇష్టమైన కమ్యూనిటీ")}
+            placeholder={tr("Any / Same community", "ఏదైనా / అదే కమ్యూనిటీ")}
             value={form.partnerCommunity}
-            onChangeText={(text) => updateField("partnerCommunity", text)}
+            options={PREFERRED_COMMUNITY_OPTIONS}
+            icon="people-circle-outline"
+            isOpen={openDropdown === "partnerCommunity"}
+            onToggle={() => setOpenDropdown((current) => (current === "partnerCommunity" ? "" : "partnerCommunity"))}
+            onSelect={(value) => {
+              updateField("partnerCommunity", value);
+              setOpenDropdown("");
+            }}
           />
 
           <FormInput
-            label="Preferred Location"
-            placeholder="Kerala / Bangalore / Any"
+            label={tr("Preferred Location", "ఇష్టమైన స్థానం")}
+            placeholder={tr("Kerala / Bangalore / Any", "కేరళ / బెంగళూరు / ఏదైనా")}
             value={form.partnerLocation}
             onChangeText={(text) => updateField("partnerLocation", text)}
           />
 
           <FormInput
-            label="Preferred Education"
-            placeholder="Graduate / Post Graduate"
+            label={tr("Preferred Education", "ఇష్టమైన విద్య")}
+            placeholder={tr("Graduate / Post Graduate", "స్నాతక / స్నాతకోత్తర")}
             value={form.partnerEducation}
             onChangeText={(text) => updateField("partnerEducation", text)}
           />
+
+          <Modal transparent visible={showDobPicker} animationType="fade" onRequestClose={() => setShowDobPicker(false)}>
+            <TouchableOpacity style={styles.calendarOverlay} activeOpacity={1} onPress={() => setShowDobPicker(false)}>
+              <TouchableOpacity style={styles.calendarSheet} activeOpacity={1} onPress={() => {}}>
+                <View style={styles.calendarHeader}>
+                  <TouchableOpacity
+                    style={styles.calendarNavBtn}
+                    onPress={() => setDobMonth(new Date(dobMonth.getFullYear(), dobMonth.getMonth() - 1, 1))}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="chevron-back" size={20} color={COLORS.primary} />
+                  </TouchableOpacity>
+
+                  <Text style={styles.calendarTitle}>{formatMonthTitle(dobMonth)}</Text>
+
+                  <TouchableOpacity
+                    style={styles.calendarNavBtn}
+                    onPress={() => setDobMonth(new Date(dobMonth.getFullYear(), dobMonth.getMonth() + 1, 1))}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.yearRow}>
+                  {Array.from({ length: DOB_YEAR_RANGE + 1 }, (_, index) => {
+                    const year = new Date().getFullYear() - DOB_YEAR_RANGE + index;
+                    const active = year === dobMonth.getFullYear();
+                    return (
+                      <TouchableOpacity
+                        key={year}
+                        style={[styles.yearChip, active && styles.yearChipActive]}
+                        onPress={() => setDobMonth(new Date(year, dobMonth.getMonth(), 1))}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={[styles.yearChipText, active && styles.yearChipTextActive]}>{year}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+
+                <View style={styles.weekRow}>
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+                    <Text key={day} style={styles.weekLabel}>{day}</Text>
+                  ))}
+                </View>
+
+                <View style={styles.calendarGrid}>
+                  {buildCalendarDays(dobMonth).map((date, index) => {
+                    if (!date) {
+                      return <View key={`empty-${index}`} style={styles.calendarCell} />;
+                    }
+
+                    const selected = form.dob === formatDobString(date);
+                    return (
+                      <TouchableOpacity
+                        key={date.toISOString()}
+                        style={[styles.calendarCell, selected && styles.calendarCellActive]}
+                        activeOpacity={0.85}
+                        onPress={() => {
+                          updateField("dob", formatDobString(date));
+                          setShowDobPicker(false);
+                        }}
+                      >
+                        <Text style={[styles.calendarCellText, selected && styles.calendarCellTextActive]}>
+                          {date.getDate()}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <View style={styles.calendarActions}>
+                  <TouchableOpacity
+                    style={[styles.calendarActionBtn, styles.calendarCancelBtn]}
+                    onPress={() => setShowDobPicker(false)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.calendarCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.calendarActionBtn, styles.calendarDoneBtn]}
+                    onPress={() => setShowDobPicker(false)}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.calendarDoneText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Modal>
 
           <PrimaryButton
             title="Save Profile"
@@ -698,6 +1077,76 @@ export default function ProfileCreateEditScreen({ navigation }) {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function DropdownField({
+  label,
+  value,
+  placeholder,
+  options,
+  icon,
+  isOpen,
+  onToggle,
+  onSelect,
+  disabled = false,
+}) {
+  return (
+    <View>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity
+        style={[styles.dropdownTrigger, disabled && styles.dropdownTriggerDisabled]}
+        activeOpacity={disabled ? 1 : 0.85}
+        onPress={disabled ? undefined : onToggle}
+        disabled={disabled}
+      >
+        <Ionicons name={icon} size={20} color={COLORS.muted} />
+        <Text
+          style={[styles.dropdownValue, !value && styles.dropdownPlaceholder]}
+          numberOfLines={1}
+        >
+          {value || placeholder}
+        </Text>
+        <Ionicons
+          name={isOpen ? "chevron-up-outline" : "chevron-down-outline"}
+          size={18}
+          color={COLORS.muted}
+        />
+      </TouchableOpacity>
+
+      <Modal transparent visible={isOpen && !disabled} animationType="fade" onRequestClose={onToggle}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={onToggle}>
+          <View style={styles.dropdownMenu}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {options.map((option) => {
+                const selected = value === option;
+
+                return (
+                  <TouchableOpacity
+                    key={option}
+                    activeOpacity={0.85}
+                    style={[styles.dropdownItem, selected && styles.dropdownItemActive]}
+                    onPress={() => onSelect(option)}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        selected && styles.dropdownItemTextActive,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                    {selected ? (
+                      <Ionicons name="checkmark" size={18} color={COLORS.primary} />
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   );
 }
 
@@ -953,6 +1402,242 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
 
+  dropdownTrigger: {
+    minHeight: 52,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  dropdownTriggerDisabled: {
+    opacity: 0.65,
+  },
+
+  dropdownValue: {
+    flex: 1,
+    color: COLORS.text,
+    fontWeight: "700",
+  },
+
+  dropdownPlaceholder: {
+    color: "#9CA3AF",
+    fontWeight: "700",
+  },
+
+  dobTrigger: {
+    minHeight: 52,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  dobValue: {
+    flex: 1,
+    color: COLORS.text,
+    fontWeight: "700",
+  },
+
+  dobPlaceholder: {
+    color: "#9CA3AF",
+    fontWeight: "700",
+  },
+
+  calendarOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.42)",
+    justifyContent: "center",
+    padding: 18,
+  },
+
+  calendarSheet: {
+    backgroundColor: COLORS.white,
+    borderRadius: 22,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  calendarHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+
+  calendarNavBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.bg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  calendarTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontWeight: "900",
+    color: COLORS.text,
+    fontSize: 16,
+  },
+
+  yearRow: {
+    paddingVertical: 8,
+  },
+
+  yearChip: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.bg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+
+  yearChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+
+  yearChipText: {
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+
+  yearChipTextActive: {
+    color: COLORS.white,
+  },
+
+  weekRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 4,
+    marginBottom: 6,
+  },
+
+  weekLabel: {
+    width: 38,
+    textAlign: "center",
+    fontWeight: "800",
+    color: COLORS.muted,
+  },
+
+  calendarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+
+  calendarCell: {
+    width: "13.5%",
+    aspectRatio: 1,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+    backgroundColor: COLORS.bg,
+  },
+
+  calendarCellActive: {
+    backgroundColor: COLORS.primary,
+  },
+
+  calendarCellText: {
+    fontWeight: "800",
+    color: COLORS.text,
+  },
+
+  calendarCellTextActive: {
+    color: COLORS.white,
+  },
+
+  calendarActions: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 8,
+  },
+
+  calendarActionBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  calendarCancelBtn: {
+    backgroundColor: COLORS.bg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  calendarDoneBtn: {
+    backgroundColor: COLORS.primary,
+  },
+
+  calendarCancelText: {
+    color: COLORS.text,
+    fontWeight: "900",
+  },
+
+  calendarDoneText: {
+    color: COLORS.white,
+    fontWeight: "900",
+  },
+
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.42)",
+    justifyContent: "center",
+    padding: 18,
+  },
+
+  dropdownMenu: {
+    maxHeight: 420,
+    backgroundColor: COLORS.white,
+    borderRadius: 22,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  dropdownItem: {
+    minHeight: 50,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+
+  dropdownItemActive: {
+    backgroundColor: "rgba(179, 34, 34, 0.08)",
+  },
+
+  dropdownItemText: {
+    flex: 1,
+    color: COLORS.text,
+    fontWeight: "800",
+  },
+
+  dropdownItemTextActive: {
+    color: COLORS.primary,
+  },
   saveBtn: {
     marginTop: 24,
   },
@@ -961,3 +1646,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
+
+

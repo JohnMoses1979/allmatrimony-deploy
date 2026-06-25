@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -41,7 +41,9 @@ export default function AiChatScreen({ navigation }) {
   const { appTheme, language, myProfile, currentUser } = useMatrimony();
   const isTelugu = language === "te";
   const aiLanguage = isTelugu ? "te" : "en";
-  const speechLanguage = "en-US";
+  const speechLanguage = isTelugu ? "te-IN" : "en-US";
+  const t = (english, telugu) => (isTelugu ? telugu : english);
+
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 16) + 132;
 
@@ -53,13 +55,22 @@ export default function AiChatScreen({ navigation }) {
   const webChunksRef = useRef([]);
   const webMimeTypeRef = useRef("");
 
-  const [messages, setMessages] = useState([
-    {
-      id: "welcome",
-      sender: "ai",
-      text: "Hi! I am your All Matrimony AI Assistant. Ask me anything about the app or general questions.",
-    },
-  ]);
+  const chatStorageKey = `aiChatHistory:${String(currentUser?.id || myProfile?.id || "guest")}`;
+  const defaultMessages = useMemo(
+    () => [
+      {
+        id: "welcome",
+        sender: "ai",
+        text: t(
+          "Hi! I am your All Matrimony AI Assistant. Ask me anything about the app or general questions.",
+          "హాయ్! నేను మీ All Matrimony AI అసిస్టెంట్. యాప్ లేదా సాధారణ ప్రశ్నలు ఏవైనా అడగండి."
+        ),
+      },
+    ],
+    [isTelugu]
+  );
+
+  const [messages, setMessages] = useState(defaultMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
@@ -69,23 +80,22 @@ export default function AiChatScreen({ navigation }) {
   const [voiceHint, setVoiceHint] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
-  const chatStorageKey = `aiChatHistory:${String(currentUser?.id || myProfile?.id || "guest")}`;
-  const defaultMessages = [
-    {
-      id: "welcome",
-      sender: "ai",
-      text: "Hi! I am your All Matrimony AI Assistant. Ask me anything about the app or general questions.",
-    },
-  ];
-
   const quickPrompts = useMemo(
-    () => [
-      "How do I create or edit my profile?",
-      "How does admin approval work?",
-      "How do I book a wedding service?",
-      "What are the support contacts?",
-    ],
-    []
+    () =>
+      isTelugu
+        ? [
+            "నా ప్రొఫైల్‌ను ఎలా సృష్టించాలి లేదా సవరించాలి?",
+            "అడ్మిన్ ఆమోదం ఎలా పనిచేస్తుంది?",
+            "వెడ్డింగ్ సర్వీస్‌ను ఎలా బుక్ చేయాలి?",
+            "సపోర్ట్ కాంటాక్ట్‌లు ఏమిటి?",
+          ]
+        : [
+            "How do I create or edit my profile?",
+            "How does admin approval work?",
+            "How do I book a wedding service?",
+            "What are the support contacts?",
+          ],
+    [isTelugu]
   );
 
   const theme = {
@@ -141,7 +151,9 @@ export default function AiChatScreen({ navigation }) {
   };
 
   const speakReply = async (text) => {
-    if (!voiceEnabled || !text) return;
+    if (!voiceEnabled || !text) {
+      return;
+    }
 
     await stopSpeech();
     Speech.speak(text, {
@@ -193,7 +205,7 @@ export default function AiChatScreen({ navigation }) {
     const transcript = String(data?.text || "").trim();
 
     if (!transcript) {
-      throw new Error("The transcription service returned no text.");
+      throw new Error(t("The transcription service returned no text.", "ట్రాన్స్క్రిప్షన్ సేవ నుండి టెక్స్ట్ రాలేదు."));
     }
 
     return transcript;
@@ -201,7 +213,7 @@ export default function AiChatScreen({ navigation }) {
 
   const insertTranscript = (text) => {
     setInput(text);
-    setVoiceHint("Transcript inserted into the input box.");
+    setVoiceHint(t("Transcript inserted into the input box.", "ట్రాన్స్క్రిప్ట్ ఇన్‌పుట్ బాక్స్‌లో చేర్చబడింది."));
     inputRef.current?.focus?.();
   };
 
@@ -209,12 +221,15 @@ export default function AiChatScreen({ navigation }) {
     const text = String(messageText || "").trim();
 
     if (!text) {
-      Alert.alert("Message required", "Please enter your question.");
+      Alert.alert(t("Message required", "సందేశం అవసరం"), t("Please enter your question.", "దయచేసి మీ ప్రశ్నను నమోదు చేయండి."));
       return;
     }
 
     if (loading || isRecording || isTranscribing) {
-      Alert.alert("Voice in progress", "Please finish the current recording first.");
+      Alert.alert(
+        t("Voice in progress", "రికార్డింగ్ జరుగుతోంది"),
+        t("Please finish the current recording first.", "దయచేసి ప్రస్తుత రికార్డింగ్‌ను ముందుగా పూర్తిచేయండి.")
+      );
       return;
     }
 
@@ -247,13 +262,21 @@ export default function AiChatScreen({ navigation }) {
       const aiMessage = {
         id: `ai_${Date.now()}`,
         sender: "ai",
-        text: data?.reply || "Sorry, I could not generate a reply.",
+        text:
+          data?.reply ||
+          t(
+            "Sorry, I could not generate a reply.",
+            "క్షమించండి, ప్రతిస్పందనను రూపొందించలేకపోయాను."
+          ),
       };
 
       setMessages((prev) => [...prev, aiMessage]);
       await speakReply(aiMessage.text);
     } catch (error) {
-      const errorMessage = "AI chat is not available right now. Please check the backend or API key.";
+      const errorMessage = t(
+        "AI chat is not available right now. Please check the backend or API key.",
+        "AI చాట్ ప్రస్తుతం అందుబాటులో లేదు. దయచేసి బ్యాక్‌ఎండ్ లేదా API కీని తనిఖీ చేయండి."
+      );
 
       setMessages((prev) => [
         ...prev,
@@ -271,11 +294,13 @@ export default function AiChatScreen({ navigation }) {
   };
 
   const startVoiceInput = async () => {
-    if (loading || isTranscribing || isRecording) return;
+    if (loading || isTranscribing || isRecording) {
+      return;
+    }
 
     try {
       await stopSpeech();
-      setVoiceHint("Preparing microphone...");
+      setVoiceHint(t("Preparing microphone...", "మైక్రోఫోన్ సిద్ధం చేస్తున్నాం..."));
 
       if (Platform.OS === "web") {
         if (
@@ -285,15 +310,16 @@ export default function AiChatScreen({ navigation }) {
           typeof MediaRecorder === "undefined"
         ) {
           setVoiceHint("");
-          Alert.alert("Voice not supported", "Your browser does not support audio recording.");
+          Alert.alert(
+            t("Voice not supported", "వాయిస్ సపోర్ట్ లేదు"),
+            t("Your browser does not support audio recording.", "మీ బ్రౌజర్ ఆడియో రికార్డింగ్‌ను సపోర్ట్ చేయదు.")
+          );
           return;
         }
 
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const preferredMimeType = pickWebRecorderMimeType();
-        const recorder = preferredMimeType
-          ? new MediaRecorder(stream, { mimeType: preferredMimeType })
-          : new MediaRecorder(stream);
+        const recorder = preferredMimeType ? new MediaRecorder(stream, { mimeType: preferredMimeType }) : new MediaRecorder(stream);
 
         webChunksRef.current = [];
         webMimeTypeRef.current = recorder.mimeType || preferredMimeType || "audio/webm";
@@ -311,12 +337,20 @@ export default function AiChatScreen({ navigation }) {
           setIsTranscribing(false);
           setVoiceHint("");
           clearWebRecordingResources();
-          Alert.alert("Voice error", "Could not record audio from this browser.");
+          Alert.alert(
+            t("Voice error", "వాయిస్ లోపం"),
+            t("Could not record audio from this browser.", "ఈ బ్రౌజర్ నుండి ఆడియో రికార్డ్ చేయలేకపోయాం.")
+          );
         };
 
         recorder.start();
         setIsRecording(true);
-        setVoiceHint("Recording... tap the mic again or Stop when you are done.");
+        setVoiceHint(
+          t(
+            t("Recording... tap the mic again or Stop when you are done.", "రికార్డింగ్ జరుగుతోంది... పూర్తయ్యాక మైక్ లేదా స్టాప్‌ను ట్యాప్ చేయండి."),
+            "రికార్డింగ్ జరుగుతోంది... పూర్తయ్యాక మైక్ లేదా స్టాప్‌ను ట్యాప్ చేయండి."
+          )
+        );
         return;
       }
 
@@ -324,7 +358,10 @@ export default function AiChatScreen({ navigation }) {
 
       if (!permissionResult?.granted) {
         setVoiceHint("");
-        Alert.alert("Permission required", "Please allow microphone permission to use voice input.");
+        Alert.alert(
+          t("Permission required", "అనుమతి అవసరం"),
+          t("Please allow microphone permission to use voice input.", "వాయిస్ ఇన్‌పుట్ కోసం మైక్రోఫోన్ అనుమతి ఇవ్వండి.")
+        );
         return;
       }
 
@@ -339,13 +376,13 @@ export default function AiChatScreen({ navigation }) {
       await recording.startAsync();
       nativeRecordingRef.current = recording;
       setIsRecording(true);
-      setVoiceHint("Recording... tap the mic again or Stop when you are done.");
+      setVoiceHint(t("Recording... tap the mic again or Stop when you are done.", "రికార్డింగ్ జరుగుతోంది... పూర్తయ్యాక మైక్ లేదా స్టాప్‌ను ట్యాప్ చేయండి."));
     } catch (error) {
       setIsRecording(false);
       setVoiceHint("");
       clearWebRecordingResources();
       await clearNativeRecordingResources();
-      Alert.alert("Voice error", "Could not start audio recording.");
+      Alert.alert(t("Voice error", "వాయిస్ లోపం"), t("Could not start audio recording.", "ఆడియో రికార్డింగ్ ప్రారంభించలేకపోయాం."));
     }
   };
 
@@ -356,14 +393,14 @@ export default function AiChatScreen({ navigation }) {
 
     setIsRecording(false);
     setIsTranscribing(true);
-    setVoiceHint("Transcribing audio...");
+    setVoiceHint(t("Transcribing audio...", "ఆడియోను టెక్స్ట్‌గా మార్చుతున్నాం..."));
 
     try {
       if (Platform.OS === "web") {
         const recorder = webRecorderRef.current;
 
         if (!recorder) {
-          throw new Error("No web recording was found.");
+          throw new Error(t("No web recording was found.", "వెబ్ రికార్డింగ్ కనబడలేదు."));
         }
 
         const mimeType = webMimeTypeRef.current || recorder.mimeType || "audio/webm";
@@ -396,7 +433,7 @@ export default function AiChatScreen({ navigation }) {
       const recording = nativeRecordingRef.current;
 
       if (!recording) {
-        throw new Error("No native recording was found.");
+        throw new Error(t("No native recording was found.", "నేటివ్ రికార్డింగ్ కనబడలేదు."));
       }
 
       await recording.stopAndUnloadAsync();
@@ -404,7 +441,7 @@ export default function AiChatScreen({ navigation }) {
       nativeRecordingRef.current = null;
 
       if (!uri) {
-        throw new Error("The recorded audio file could not be created.");
+        throw new Error(t("The recorded audio file could not be created.", "రికార్డ్ చేసిన ఆడియో ఫైల్‌ను సృష్టించలేకపోయాం."));
       }
 
       const transcript = await transcribeAudio({
@@ -420,7 +457,10 @@ export default function AiChatScreen({ navigation }) {
         shouldDuckAndroid: true,
       }).catch(() => null);
     } catch (error) {
-      Alert.alert("Voice error", error?.message || "Could not transcribe audio.");
+      Alert.alert(
+        t("Voice error", "వాయిస్ లోపం"),
+        error?.message || t("Could not transcribe audio.", "ఆడియోను ట్రాన్స్క్రైబ్ చేయలేకపోయాం.")
+      );
       setVoiceHint("");
     } finally {
       setIsTranscribing(false);
@@ -501,7 +541,7 @@ export default function AiChatScreen({ navigation }) {
     return () => {
       mounted = false;
     };
-  }, [chatStorageKey]);
+  }, [chatStorageKey, defaultMessages]);
 
   useEffect(() => {
     if (!historyLoaded) {
@@ -524,18 +564,16 @@ export default function AiChatScreen({ navigation }) {
 
     return (
       <View key={item.id} style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-        <Text style={[styles.messageText, isUser ? styles.userText : styles.aiText]}>
-          {item.text}
-        </Text>
+        <Text style={[styles.messageText, isUser ? styles.userText : styles.aiText]}>{item.text}</Text>
       </View>
     );
   };
 
   const voiceButtonLabel = isTranscribing
-    ? "Transcribing..."
+    ? t("Transcribing...", "ట్రాన్స్క్రైబ్ అవుతోంది...")
     : isRecording
-      ? "Recording..."
-      : "Record";
+    ? t("Recording...", "రికార్డింగ్ జరుగుతోంది...")
+    : t("Record", "రికార్డ్");
 
   const voiceButtonIcon = isTranscribing ? "cloud-upload-outline" : isRecording ? "mic" : "mic-outline";
 
@@ -547,8 +585,11 @@ export default function AiChatScreen({ navigation }) {
     >
       <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
         <Header
-          title="AI Help"
-          subtitle={`App guidance for ${myProfile?.name || "your profile"} and general questions`}
+          title={t("AI Help", "AI సహాయం")}
+          subtitle={t(
+            `App guidance for ${myProfile?.name || "your profile"} and general questions`,
+            `మీ ${myProfile?.name || "ప్రొఫైల్"} మరియు సాధారణ ప్రశ్నలకు యాప్ మార్గదర్శకం`
+          )}
           navigation={navigation}
         />
 
@@ -568,9 +609,14 @@ export default function AiChatScreen({ navigation }) {
               </View>
 
               <View style={styles.heroCopy}>
-                <Text style={[styles.heroTitle, { color: theme.text }]}>Your app guide is here</Text>
+                <Text style={[styles.heroTitle, { color: theme.text }]}>
+                  {t("Your app guide is here", "మీ యాప్ గైడ్ సిద్ధంగా ఉంది")}
+                </Text>
                 <Text style={[styles.heroText, { color: theme.muted }]}>
-                  Ask about profile setup, approval, verification, booking, general questions, or use voice input.
+                  {t(
+                    "Ask about profile setup, approval, verification, booking, general questions, or use voice input.",
+                    "ప్రొఫైల్ సెటప్, ఆమోదం, వెరిఫికేషన్, బుకింగ్, సాధారణ ప్రశ్నలు లేదా వాయిస్ ఇన్‌పుట్ గురించి అడగండి."
+                  )}
                 </Text>
               </View>
             </View>
@@ -604,28 +650,19 @@ export default function AiChatScreen({ navigation }) {
                   size={18}
                   color={isRecording || isTranscribing ? COLORS.white : COLORS.primary}
                 />
-                <Text
-                  style={[
-                    styles.voiceButtonText,
-                    (isRecording || isTranscribing) && styles.voiceButtonTextActive,
-                  ]}
-                >
+                <Text style={[styles.voiceButtonText, (isRecording || isTranscribing) && styles.voiceButtonTextActive]}>
                   {voiceButtonLabel}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[
-                  styles.voiceButton,
-                  styles.voiceStopButton,
-                  !isRecording && styles.voiceButtonDisabled,
-                ]}
+                style={[styles.voiceButton, styles.voiceStopButton, !isRecording && styles.voiceButtonDisabled]}
                 activeOpacity={0.85}
                 onPress={() => void stopVoiceInput()}
                 disabled={!isRecording || isTranscribing}
               >
                 <Ionicons name="stop-circle-outline" size={18} color={COLORS.primary} />
-                <Text style={styles.voiceStopButtonText}>Stop</Text>
+                <Text style={styles.voiceStopButtonText}>{t("Stop", "ఆపండి")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -644,35 +681,34 @@ export default function AiChatScreen({ navigation }) {
                   color={voiceEnabled ? COLORS.white : COLORS.primary}
                 />
                 <Text style={[styles.voiceButtonText, voiceEnabled && styles.voiceButtonTextActive]}>
-                  {voiceEnabled ? "Voice On" : "Voice Off"}
+                  {voiceEnabled ? t("Voice On", "వాయిస్ ఆన్") : t("Voice Off", "వాయిస్ ఆఫ్")}
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.voiceButton, styles.newChatButton]}
-                activeOpacity={0.85}
-                onPress={() => void startNewChat()}
-              >
+              <TouchableOpacity style={[styles.voiceButton, styles.newChatButton]} activeOpacity={0.85} onPress={() => void startNewChat()}>
                 <Ionicons name="refresh-outline" size={18} color={COLORS.primary} />
-                <Text style={styles.newChatButtonText}>New Chat</Text>
+                <Text style={styles.newChatButtonText}>{t("New Chat", "కొత్త చాట్")}</Text>
               </TouchableOpacity>
             </View>
 
             {!!voiceHint && <Text style={[styles.listeningHint, { color: theme.muted }]}>{voiceHint}</Text>}
             <Text style={[styles.listeningHint, { color: theme.muted }]}>
-              Tap the mic to record voice. We upload the audio and insert the transcript into the chat box.
+              {t(
+                "Tap the mic to record voice. We upload the audio and insert the transcript into the chat box.",
+                "వాయిస్ రికార్డ్ చేయడానికి మైక్‌ను ట్యాప్ చేయండి. మేము ఆడియోను అప్‌లోడ్ చేసి ట్రాన్స్క్రిప్ట్‌ను చాట్ బాక్స్‌లో చేర్చుతాము."
+              )}
             </Text>
           </View>
 
           {messages.map(renderMessage)}
         </ScrollView>
 
-        {loading && (
+        {loading ? (
           <View style={[styles.loadingBox, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
             <ActivityIndicator color={COLORS.primary} />
-            <Text style={[styles.loadingText, { color: theme.muted }]}>AI is typing...</Text>
+            <Text style={[styles.loadingText, { color: theme.muted }]}>{t("AI is typing...", "AI టైప్ చేస్తోంది...")}</Text>
           </View>
-        )}
+        ) : null}
 
         <View
           style={[
@@ -687,7 +723,10 @@ export default function AiChatScreen({ navigation }) {
           <TextInput
             ref={inputRef}
             style={[styles.input, { color: theme.text, backgroundColor: theme.bg, borderColor: theme.border }]}
-            placeholder="Example: How do I complete my profile?"
+            placeholder={t(
+              "Example: How do I complete my profile?",
+              "ఉదాహరణ: నా ప్రొఫైల్‌ను ఎలా పూర్తి చేయాలి?"
+            )}
             placeholderTextColor={theme.muted}
             value={input}
             onChangeText={setInput}
@@ -695,10 +734,7 @@ export default function AiChatScreen({ navigation }) {
           />
 
           <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (loading || isRecording || isTranscribing) && styles.sendButtonDisabled,
-            ]}
+            style={[styles.sendButton, (loading || isRecording || isTranscribing) && styles.sendButtonDisabled]}
             activeOpacity={0.9}
             onPress={() => void sendMessage()}
             disabled={loading || isRecording || isTranscribing}
@@ -902,3 +938,5 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+
+

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   ScrollView,
   View,
-  Text,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -16,6 +15,7 @@ import { CommonActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../constants/colors";
+import Text from "../components/AutoText";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";
 import { useMatrimony } from "../context/MatrimonyContext";
@@ -32,6 +32,7 @@ const TEXT = {
     summary: "Profile Summary",
     community: "Community",
     religion: "Religion",
+    caste: "Caste",
     education: "Education",
     profession: "Profession",
     income: "Income",
@@ -73,6 +74,7 @@ const TEXT = {
     summary: "ప్రొఫైల్ సారాంశం",
     community: "కమ్యూనిటీ",
     religion: "మతం",
+    caste: "కులం",
     education: "విద్య",
     profession: "వృత్తి",
     income: "ఆదాయం",
@@ -509,6 +511,11 @@ const logout = () => {
             theme={theme}
           />
           <SummaryRow
+            label={t.caste}
+            value={myProfile?.caste || "-"}
+            theme={theme}
+          />
+          <SummaryRow
             label={t.education}
             value={myProfile?.education || "-"}
             theme={theme}
@@ -828,7 +835,7 @@ function LanguageCard({
           </Text>
 
           <Text style={[styles.menuSubText, { color: theme.muted }]}>
-            {language === "te" ? "ప్రస్తుతం: తెలుగు" : "Current: English"}
+            Current: {language === "te" ? "Telugu" : "English"}
           </Text>
         </View>
 
@@ -873,7 +880,7 @@ function LanguageCard({
                 language === "te" && styles.langTextActive,
               ]}
             >
-              తెలుగు
+              Telugu
             </Text>
           </TouchableOpacity>
         </View>

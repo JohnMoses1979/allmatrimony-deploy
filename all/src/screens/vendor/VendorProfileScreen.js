@@ -30,6 +30,7 @@
 //   const vendor = ctx?.currentVendor || {};
 //   const svc    = ctx?.getVendorService?.(vendor.id) || {};
 //   const kyc    = svc.kyc || {};
+//   const currentLanguage = ctx?.language || 'en';
 //   const vendorServices = getVendorServices(vendor);
 
 //   const [avatar, setAvatar] = useState(vendor.avatar || null);
@@ -49,10 +50,14 @@
 //   const statusCfg = {
 //     Draft:           {color: '#FF9800', label: 'Setup Pending',          bg: '#FFF8E1'},
 //     PendingApproval: {color: '#2196F3', label: 'Awaiting Admin Approval', bg: '#E3F2FD'},
-//     Live:            {color: '#4CAF50', label: '🟢 Live & Active',        bg: '#E8F5E9'},
+//     Live:            {color: '#4CAF50', label: '?? Live & Active',        bg: '#E8F5E9'},
 //     Rejected:        {color: '#F44336', label: 'Rejected',                bg: '#FFEBEE'},
 //   }[serviceStatus] || {color: '#FF9800', label: 'Setup Pending', bg: '#FFF8E1'};
 
+//  const handleLanguageChange = async (nextLanguage) => {
+//     const normalizedLanguage = String(nextLanguage || 'en').toLowerCase().startsWith('te') ? 'te' : 'en';
+//     await ctx?.setLanguage?.(normalizedLanguage, { persistBackend: false });
+//   };
 //   const pickAvatarFromGallery = async () => {
 //     if (Platform.OS !== 'web') {
 //       const p = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -79,7 +84,7 @@
 //     }
 
 //     Alert.alert('Profile Photo', 'Choose source', [
-//       {text: '📷 Camera', onPress: async () => {
+//       {text: '?? Camera', onPress: async () => {
 //         const p = await ImagePicker.requestCameraPermissionsAsync();
 //         if (!p.granted) return;
 //         const r = await ImagePicker.launchCameraAsync({quality: 0.8, allowsEditing: true, aspect: [1, 1]});
@@ -88,7 +93,7 @@
 //           ctx?.setCurrentVendor?.({...vendor, avatar: r.assets[0].uri});
 //         }
 //       }},
-//       {text: '🖼 Gallery', onPress: async () => {
+//       {text: '?? Gallery', onPress: async () => {
 //         const p = await ImagePicker.requestMediaLibraryPermissionsAsync();
 //         if (!p.granted) return;
 //         const r = await ImagePicker.launchImageLibraryAsync({quality: 0.8, allowsEditing: true, aspect: [1, 1]});
@@ -508,7 +513,16 @@
 //   serviceIcon:      {width: 50, height: 50, borderRadius: 14, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border},
 //   serviceName:      {fontWeight: 'bold', color: COLORS.dark, fontSize: 15},
 //   serviceSub:       {color: COLORS.muted, fontSize: 12, marginTop: 2},
-//   emptyServiceText:  {color: COLORS.muted, fontWeight: '600', fontSize: 13},
+//  languageCard:     {backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: COLORS.border},
+//   languageHeader:   {flexDirection: 'row', alignItems: 'center', gap: 12},
+//   languageIcon:     {width: 42, height: 42, borderRadius: 12, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border},
+//   languageTitle:    {fontWeight: 'bold', color: COLORS.dark, fontSize: 15},
+//   languageSub:      {color: COLORS.muted, fontSize: 12, marginTop: 2},
+//   languageRow:      {flexDirection: 'row', gap: 10, marginTop: 14},
+//   langOption:       {flex: 1, paddingVertical: 11, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', backgroundColor: COLORS.background},
+//   langOptionActive: {borderColor: COLORS.primary, backgroundColor: COLORS.primary},
+//   langOptionText:   {fontWeight: '900', color: COLORS.primary, fontSize: 13},
+//   langOptionTextActive: {color: COLORS.white},
 //   actionsCard:      {backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border},
 //   actionRow:        {flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F4F8F6', gap: 12},
 //   actionIcon:       {width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center'},
@@ -549,13 +563,16 @@
 
 import React, {useContext, useEffect, useState} from 'react';
 import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Alert, Image, Platform, Modal, TextInput,
+  View, StyleSheet, ScrollView,
+  TouchableOpacity, Alert, Image, Platform, Modal,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as ImagePicker from 'expo-image-picker';
 import { CommonActions } from '@react-navigation/native';
+import Text from '../../components/VendorText';
+import TextInput from '../../components/VendorTextInput';
+import {useVendorLanguage} from '../../context/VendorLanguageContext';
 import {ProfileContext} from '../../context/ProfileContext';
 import COLORS from '../../constants/colors';
 import {VENDOR_SERVICE_CATEGORIES, VENDOR_SERVICE_ICONS} from '../../constants/vendorServices';
@@ -579,6 +596,7 @@ export default function VendorProfileScreen({navigation}) {
   const vendor = ctx?.currentVendor || {};
   const svc    = ctx?.getVendorService?.(vendor.id) || {};
   const kyc    = svc.kyc || {};
+  const {vendorLanguage: currentLanguage, setVendorLanguage} = useVendorLanguage();
   const vendorServices = getVendorServices(vendor);
 
   const [avatar, setAvatar] = useState(vendor.avatar || vendor.imageName || null);
@@ -602,10 +620,12 @@ export default function VendorProfileScreen({navigation}) {
   const statusCfg = {
     Draft:           {color: '#FF9800', label: 'Setup Pending',          bg: '#FFF8E1'},
     PendingApproval: {color: '#2196F3', label: 'Awaiting Admin Approval', bg: '#E3F2FD'},
-    Live:            {color: '#4CAF50', label: '🟢 Live & Active',        bg: '#E8F5E9'},
+    Live:            {color: '#4CAF50', label: '?? Live & Active',        bg: '#E8F5E9'},
     Rejected:        {color: '#F44336', label: 'Rejected',                bg: '#FFEBEE'},
-  }[serviceStatus] || {color: '#FF9800', label: 'Setup Pending', bg: '#FFF8E1'};
-
+  }[serviceStatus] || {color: '#FF9800', label: 'Setup Pending', bg: '#FFF8E1'};  const handleLanguageChange = async (nextLanguage) => {
+    const normalizedLanguage = String(nextLanguage || 'en').toLowerCase().startsWith('te') ? 'te' : 'en';
+    await setVendorLanguage(normalizedLanguage);
+  };
   const pickAvatarFromGallery = async () => {
     if (Platform.OS !== 'web') {
       const p = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -637,7 +657,7 @@ export default function VendorProfileScreen({navigation}) {
     }
 
     Alert.alert('Profile Photo', 'Choose source', [
-      {text: '📷 Camera', onPress: async () => {
+      {text: '?? Camera', onPress: async () => {
         const p = await ImagePicker.requestCameraPermissionsAsync();
         if (!p.granted) return;
         const r = await ImagePicker.launchCameraAsync({quality: 0.8, allowsEditing: true, aspect: [1, 1]});
@@ -651,7 +671,7 @@ export default function VendorProfileScreen({navigation}) {
           });
         }
       }},
-      {text: '🖼 Gallery', onPress: async () => {
+      {text: '?? Gallery', onPress: async () => {
         const p = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!p.granted) return;
         const r = await ImagePicker.launchImageLibraryAsync({quality: 0.8, allowsEditing: true, aspect: [1, 1]});
@@ -869,6 +889,37 @@ export default function VendorProfileScreen({navigation}) {
           </View>
         )}
 
+        {/* Language translation */}
+        <View style={styles.languageCard}>
+          <View style={styles.languageHeader}>
+            <View style={styles.languageIcon}>
+              <Ionicons name="language-outline" size={22} color={COLORS.primary} />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.languageTitle}>Language Translation</Text>
+              <Text style={styles.languageSub}>
+                Current: {currentLanguage === 'te' ? 'Telugu' : 'English'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.languageRow}>
+            <TouchableOpacity
+              style={[styles.langOption, currentLanguage === 'en' && styles.langOptionActive]}
+              onPress={() => handleLanguageChange('en')}>
+              <Text style={[styles.langOptionText, currentLanguage === 'en' && styles.langOptionTextActive]}>
+                English
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.langOption, currentLanguage === 'te' && styles.langOptionActive]}
+              onPress={() => handleLanguageChange('te')}>
+              <Text style={[styles.langOptionText, currentLanguage === 'te' && styles.langOptionTextActive]}>
+                Telugu
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Actions */}
         <View style={styles.actionsCard}>
           <ActionRow icon="id-card-outline"    label="Update KYC Documents"
@@ -1068,8 +1119,16 @@ const styles = StyleSheet.create({
   serviceRow:       {flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8},
   serviceIcon:      {width: 50, height: 50, borderRadius: 14, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border},
   serviceName:      {fontWeight: 'bold', color: COLORS.dark, fontSize: 15},
-  serviceSub:       {color: COLORS.muted, fontSize: 12, marginTop: 2},
-  emptyServiceText:  {color: COLORS.muted, fontWeight: '600', fontSize: 13},
+  serviceSub:       {color: COLORS.muted, fontSize: 12, marginTop: 2},  languageCard:     {backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 18, padding: 16, borderWidth: 1, borderColor: COLORS.border},
+  languageHeader:   {flexDirection: 'row', alignItems: 'center', gap: 12},
+  languageIcon:     {width: 42, height: 42, borderRadius: 12, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border},
+  languageTitle:    {fontWeight: 'bold', color: COLORS.dark, fontSize: 15},
+  languageSub:      {color: COLORS.muted, fontSize: 12, marginTop: 2},
+  languageRow:      {flexDirection: 'row', gap: 10, marginTop: 14},
+  langOption:       {flex: 1, paddingVertical: 11, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', backgroundColor: COLORS.background},
+  langOptionActive: {borderColor: COLORS.primary, backgroundColor: COLORS.primary},
+  langOptionText:   {fontWeight: '900', color: COLORS.primary, fontSize: 13},
+  langOptionTextActive: {color: COLORS.white},
   actionsCard:      {backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border},
   actionRow:        {flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F4F8F6', gap: 12},
   actionIcon:       {width: 40, height: 40, borderRadius: 12, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center'},

@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import COLORS from '../../constants/colors';
 
@@ -17,7 +18,7 @@ export default function VendorBookingDecisionScreen({navigation, route}) {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <View style={[styles.iconWrap, {backgroundColor: `${color}18`}]}>
+        <View style={styles.iconWrap}>
           <Ionicons name={icon} size={76} color={color} />
         </View>
 
@@ -74,9 +75,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconWrap: {
-    width: 116,
-    height: 116,
-    borderRadius: 58,
+    width: 84,
+    height: 84,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,

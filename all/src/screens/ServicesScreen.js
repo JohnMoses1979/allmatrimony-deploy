@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from "react";
+﻿import React, { useCallback, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import Text from "../components/AutoText";
 import { COLORS } from "../constants/colors";
 import { getStrings } from "../constants/i18n";
 import Header from "../components/Header";
@@ -24,6 +24,11 @@ const CATEGORY_KEYS = [
   "arkestra",
   "carServices",
   "cleaning",
+  "invitationCard",
+  "pastorBooking",
+  "honeymoonPlanning",
+  "soundLighting",
+  "weddingCake",
 ];
 
 const CATEGORY_VALUES = {
@@ -36,6 +41,11 @@ const CATEGORY_VALUES = {
   arkestra: "Arkestra",
   carServices: "Bride And Groom Car Services",
   cleaning: "Cleaning",
+  invitationCard: "Invitation Card Design & Printing",
+  pastorBooking: "Pastor Booking",
+  honeymoonPlanning: "Honeymoon Planning",
+  soundLighting: "Sound & Lighting",
+  weddingCake: "Wedding Cake",
 };
 
 const CATEGORY_LABELS = {
@@ -49,8 +59,13 @@ const CATEGORY_LABELS = {
     arkestra: "Arkestra",
     carServices: "Bride/Groom Car",
     cleaning: "Cleaning",
+    invitationCard: "Invitation Card",
+    pastorBooking: "Pastor Booking",
+    honeymoonPlanning: "Honeymoon Planning",
+    soundLighting: "Sound & Lighting",
+    weddingCake: "Wedding Cake",
   },
-  te: {
+    te: {
     all: "అన్నీ",
     functionHall: "ఫంక్షన్ హాల్",
     photography: "ఫోటోగ్రఫీ",
@@ -60,26 +75,43 @@ const CATEGORY_LABELS = {
     arkestra: "ఆర్కెస్ట్రా",
     carServices: "వధువు / వరుడు కార్",
     cleaning: "క్లీనింగ్",
+    invitationCard: "ఇన్విటేషన్ కార్డ్",
+    pastorBooking: "పాస్టర్ బుకింగ్",
+    honeymoonPlanning: "హనీమూన్ ప్లానింగ్",
+    soundLighting: "సౌండ్ & లైటింగ్",
+    weddingCake: "వెడ్డింగ్ కేక్",
   },
 };
 
 const CATEGORY_ALIASES = {
   functionHall: ["Function Hall", "Church Wedding Hall", "Wedding Hall", "Hall"],
-  photography: ["Photography", "Wedding Photography"],
+  photography: ["Photography", "Wedding Photography", "Photo", "Photography Service", "Photo Service"],
   cooking: ["Cooking", "Catering", "Christian Catering"],
   makeup: ["Makeup", "Bridal Makeup"],
   decoration: ["Decoration", "Church Decoration"],
   arkestra: ["Arkestra", "Wedding Orchestra", "Orchestra"],
   carServices: ["Bride And Groom Car Services", "Wedding Cars", "Car Services"],
   cleaning: ["Cleaning", "Cleaning Services"],
+  invitationCard: ["Invitation Card Design & Printing", "Wedding Invitation Design", "Invitation Card"],
+  pastorBooking: ["Pastor Booking"],
+  honeymoonPlanning: ["Honeymoon Planning"],
+  soundLighting: ["Sound & Lighting", "Sound Lighting"],
+  weddingCake: ["Wedding Cake", "Cake"],
 };
 
 const matchesCategory = (itemCategory, selectedKey) => {
   if (selectedKey === "all") return true;
   const normalized = String(itemCategory || "").trim().toLowerCase();
-  return (CATEGORY_ALIASES[selectedKey] || [CATEGORY_VALUES[selectedKey]]).some(
-    (value) => String(value).trim().toLowerCase() === normalized
-  );
+  const aliases = CATEGORY_ALIASES[selectedKey] || [CATEGORY_VALUES[selectedKey]];
+
+  return aliases.some((value) => {
+    const normalizedValue = String(value).trim().toLowerCase();
+    return (
+      normalized === normalizedValue ||
+      normalized.includes(normalizedValue) ||
+      normalizedValue.includes(normalized)
+    );
+  });
 };
 
 export default function ServicesScreen({ navigation }) {
@@ -192,6 +224,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     height: 42,
+    minWidth: 112,
     paddingHorizontal: 16,
     borderRadius: 999,
     alignItems: "center",
@@ -201,9 +234,16 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontWeight: "900",
+    textAlign: "center",
   },
   content: {
     padding: 16,
     paddingBottom: 100,
   },
 });
+
+
+
+
+
+

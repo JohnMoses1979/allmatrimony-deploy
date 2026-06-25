@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -10,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 
 import Header from "../../components/Header";
+import Text from "../../components/AdminText";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";
 

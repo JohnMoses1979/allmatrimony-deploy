@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl} from 'react-native';
+import {View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl} from 'react-native';
+import Text from '../../components/VendorText';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {ProfileContext} from '../../context/ProfileContext';
 import COLORS from '../../constants/colors';

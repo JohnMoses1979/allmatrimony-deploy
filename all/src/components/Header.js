@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { COLORS } from "../constants/colors";
 import { useMatrimony } from "../context/MatrimonyContext";
+import AutoText from "./AutoText";
 
 const APP_LOGO = require("../../assets/Images/app-logo.png");
 
@@ -15,6 +16,7 @@ export default function Header({
   showNotification = true,
   backTo = "MainTabs",
   hideBack = false,
+  disableTranslation = false,
 }) {
   const fallbackNavigation = useNavigation();
   const route = useRoute();
@@ -93,9 +95,9 @@ export default function Header({
         )}
 
         <View style={styles.titleBox}>
-          <Text numberOfLines={1} style={styles.title}>
+          <AutoText disableTranslation={disableTranslation} numberOfLines={1} style={styles.title}>
             {title}
-          </Text>
+          </AutoText>
 
           {!!subtitle && (
             <Text
@@ -237,3 +239,5 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 });
+
+

@@ -1,6 +1,7 @@
 import React from "react";
-import { Alert, ScrollView, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Alert, ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Text from "../../components/AdminText";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";
 

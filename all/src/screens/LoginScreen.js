@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,16 +18,16 @@ import InlineMessage from "../components/InlineMessage";
 import PrimaryButton from "../components/PrimaryButton";
 import { COLORS } from "../constants/colors";
 import { API_BASE_URL } from "../config/api";
+import { createTextHelper } from "../constants/localization";
 import { getStrings } from "../constants/i18n";
 import { useMatrimony } from "../context/MatrimonyContext";
-import { validateIdentifier } from "../utils/authValidation";
 
 const LOGIN_TEXT = {
   en: {
     cardTitle: "Bride / Groom Login",
     cardSubtitle: "Continue your matrimony journey",
-    identifierLabel: "Email or Phone Number",
-    identifierPlaceholder: "Enter email or 10-digit phone number",
+    identifierLabel: "Mobile Number",
+    identifierPlaceholder: "Enter 10-digit mobile number",
     passwordLabel: "Password",
     passwordPlaceholder: "Enter password",
     vendorTitle: "Vendor Login",
@@ -46,7 +46,7 @@ const LOGIN_TEXT = {
     createAccount: "Create Account",
     adminLogin: "Admin Login",
     infoText:
-      "Web and mobile both use the same validation now. Login accepts either email or phone number.",
+      "Web and mobile both use the same validation now. Login accepts only mobile number.",
     enterPassword: "Please enter password.",
     invalidResponse: (baseUrl) => `Login API returned an invalid response from ${baseUrl}.`,
     invalidLogin: "Invalid email, phone number, or password.",
@@ -56,28 +56,36 @@ const LOGIN_TEXT = {
   },
   te: {
     cardTitle: "వధువు / వరుడు లాగిన్",
-    cardSubtitle: "మీ మ్యాట్రిమోని ప్రయాణాన్ని కొనసాగించండి",
-    identifierLabel: "ఇమెయిల్ లేదా ఫోన్ నంబర్",
-    identifierPlaceholder: "ఇమెయిల్ లేదా 10 అంకెల ఫోన్ నంబర్ నమోదు చేయండి",
+    cardSubtitle: "మీ వివాహ ప్రయాణాన్ని కొనసాగించండి",
+    identifierLabel: "మొబైల్ నంబర్",
+    identifierPlaceholder: "10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి",
     passwordLabel: "పాస్‌వర్డ్",
     passwordPlaceholder: "పాస్‌వర్డ్ నమోదు చేయండి",
+    vendorTitle: "వెండర్ లాగిన్",
+    vendorSubtitle: "మీ వివాహ సేవా బుకింగులను నిర్వహించండి",
+    vendorIdentifierLabel: "మొబైల్ నంబర్",
+    vendorIdentifierPlaceholder: "నమోదు చేసిన వెండర్ మొబైల్ నంబర్ నమోదు చేయండి",
+    brideGroomTab: "వధువు / వరుడు",
+    vendorTab: "వెండర్",
+    createVendorAccount: "వెండర్ ఖాతా సృష్టించండి",
+    vendorLoginSuccess: "వెండర్ లాగిన్ విజయవంతమైంది.",
+    invalidVendorLogin: "చెల్లని వెండర్ మొబైల్ నంబర్ లేదా పాస్‌వర్డ్.",
     forgotPassword: "పాస్‌వర్డ్ మర్చిపోయారా?",
-    checking: "తనిఖీ చేస్తున్నాం...",
+    checking: "తనిఖీ చేస్తోంది...",
     login: "లాగిన్",
     newUser: "కొత్త వినియోగదారా? ",
     createAccount: "ఖాతా సృష్టించండి",
     adminLogin: "అడ్మిన్ లాగిన్",
     infoText:
-      "ఇప్పుడు వెబ్ మరియు మొబైల్ రెండూ ఒకే వాలిడేషన్‌ను ఉపయోగిస్తాయి. లాగిన్‌కు ఇమెయిల్ లేదా ఫోన్ నంబర్ సరిపోతుంది.",
+      "వెబ్ మరియు మొబైల్ ఇప్పుడు ఒకే ధృవీకరణను ఉపయోగిస్తాయి. లాగిన్‌లో మొబైల్ నంబర్ మాత్రమే పనిచేస్తుంది.",
     enterPassword: "దయచేసి పాస్‌వర్డ్ నమోదు చేయండి.",
-    invalidResponse: (baseUrl) => `${baseUrl} నుండి లాగిన్ API చెల్లని స్పందన ఇచ్చింది.`,
+    invalidResponse: (baseUrl) => `${baseUrl} నుండి లాగిన్ API చెల్లని ప్రతిస్పందన ఇచ్చింది.`,
     invalidLogin: "చెల్లని ఇమెయిల్, ఫోన్ నంబర్ లేదా పాస్‌వర్డ్.",
-    loginSuccess: "లాగిన్ విజయవంతం అయింది.",
+    loginSuccess: "లాగిన్ విజయవంతమైంది.",
     backendError: (baseUrl) =>
-      `${baseUrl} ను చేరుకోలేకపోయాం. ఫోన్/బ్రౌజర్ ఈ backend URL ను యాక్సెస్ చేయగలదో చూసుకోండి.`,
+      `${baseUrl} ను చేరుకోలేకపోయాము. ఫోన్/బ్రౌజర్ ఈ backend URL ను యాక్సెస్ చేయగలదో చూసుకోండి.`,
   },
 };
-
 export default function LoginScreen({ navigation }) {
   const {
     hydrateUserSession,
@@ -88,6 +96,7 @@ export default function LoginScreen({ navigation }) {
     getVendorSetupRoute,
   } = useMatrimony();
   const t = getStrings(language).login;
+  const tr = createTextHelper(language);
   const l = LOGIN_TEXT[language] || LOGIN_TEXT.en;
   const theme = appTheme || {
     bg: COLORS.bg,
@@ -118,7 +127,7 @@ export default function LoginScreen({ navigation }) {
       if (!/^\d{10}$/.test(cleanMobile)) {
         setMessage({
           type: "error",
-          text: "Please enter a valid 10-digit vendor mobile number.",
+          text: tr("Please enter a valid 10-digit vendor mobile number.", "దయచేసి సరైన 10 అంకెల వెండర్ మొబైల్ నంబర్ నమోదు చేయండి."),
         });
         return;
       }
@@ -162,13 +171,13 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    const identifierResult = validateIdentifier(identifier);
+    const cleanMobile = identifier.trim();
     const cleanPassword = password.trim();
 
-    if (!identifierResult.valid) {
+    if (!/^\d{10}$/.test(cleanMobile)) {
       setMessage({
         type: "error",
-        text: identifierResult.message,
+        text: tr("Please enter a valid 10-digit mobile number.", "దయచేసి సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి."),
       });
       return;
     }
@@ -191,7 +200,7 @@ export default function LoginScreen({ navigation }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          identifier: identifierResult.normalizedValue,
+          identifier: cleanMobile,
           password: cleanPassword,
         }),
       });
@@ -332,7 +341,8 @@ export default function LoginScreen({ navigation }) {
             <InlineMessage type={message.type} text={message.text} />
 
             <Text style={[styles.label, { color: theme.text }]}>
-              {isVendorLogin ? l.vendorIdentifierLabel : l.identifierLabel}
+              {(isVendorLogin ? l.vendorIdentifierLabel : l.identifierLabel).replace(/\*$/, "")}
+              <Text style={{ color: COLORS.danger }}> *</Text>
             </Text>
             <View
               style={[
@@ -362,14 +372,15 @@ export default function LoginScreen({ navigation }) {
                   }
                 }}
                 autoCapitalize="none"
-                keyboardType={isVendorLogin ? "phone-pad" : "email-address"}
-                maxLength={isVendorLogin ? 10 : undefined}
+                keyboardType="phone-pad"
+                maxLength={10}
                 placeholderTextColor={theme.muted}
               />
             </View>
 
             <Text style={[styles.label, { color: theme.text }]}>
-              {l.passwordLabel}
+              {l.passwordLabel.replace(/\*$/, "")}
+              <Text style={{ color: COLORS.danger }}> *</Text>
             </Text>
             <View
               style={[
@@ -408,8 +419,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={styles.forgot}
+            <TouchableOpacity style={styles.forgot}
               activeOpacity={0.85}
               onPress={() => navigation.navigate("ForgotPassword")}
             >
@@ -566,7 +576,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  cardSubTitle: {
+  cardSubtitle: {
     color: COLORS.muted,
     textAlign: "center",
     marginTop: 5,
@@ -710,3 +720,14 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 });
+
+
+
+
+
+
+
+
+
+
+

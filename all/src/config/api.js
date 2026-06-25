@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://13.206.220.74:8090";
+export const API_BASE_URL = "http://192.168.0.23:8080";
 
 export const WS_BASE_URL = API_BASE_URL.replace(/^http/, "ws");
 

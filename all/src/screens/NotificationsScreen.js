@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { SafeAreaView, ScrollView, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView, ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
+import Text from "../components/AutoText";
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../constants/colors";
@@ -156,7 +157,7 @@ export default function NotificationsScreen({ navigation }) {
           </View>
         ) : (
           userNotifications.map((item) => {
-            const localized = getLocalizedNotification(item, language);
+            const localized = getLocalizedNotification(item, "en");
 
             return (
               <View

@@ -4,7 +4,6 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
-  Text,
   View,
   StyleSheet,
   TouchableOpacity,
@@ -15,7 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import Header from "../components/Header";
 import PrimaryButton from "../components/PrimaryButton";
+import AutoText from "../components/AutoText";
 import { useMatrimony } from "../context/MatrimonyContext";
+import { formatAgeLabel, translateGender } from "../constants/localization";
+const Text = AutoText;
 
 export default function ProfileDetailsScreen({ navigation, route }) {
   const initialProfile = route?.params?.profile;
@@ -35,7 +37,9 @@ export default function ProfileDetailsScreen({ navigation, route }) {
     hasGoldAccess,
     getPublicProfileDetails,
     appTheme,
+    language,
   } = useMatrimony();
+  const isTelugu = language === "te";
 
   useEffect(() => {
     let active = true;
@@ -84,15 +88,11 @@ export default function ProfileDetailsScreen({ navigation, route }) {
         />
 
         <View style={styles.emptyBox}>
-          <Ionicons
-            name="person-circle-outline"
-            size={70}
-            color={COLORS.muted}
-          />
-          <Text style={styles.emptyTitle}>No Profile Found</Text>
-          <Text style={styles.emptyText}>
+          <Ionicons name="person-circle-outline" size={70} color={COLORS.muted} />
+          <AutoText style={styles.emptyTitle}>No Profile Found</AutoText>
+          <AutoText style={styles.emptyText}>
             Please go back and select one profile.
-          </Text>
+          </AutoText>
 
           <PrimaryButton
             title="Go Back"
@@ -111,6 +111,8 @@ export default function ProfileDetailsScreen({ navigation, route }) {
   }
 
   const interestStatus = getInterestStatus(profile.id);
+  const ageLabel = formatAgeLabel(language, profile.age);
+  const genderLabel = translateGender(language, profile.gender);
   const canViewFullProfile = viewerAccess.canViewFullProfile || hasSilverAccess();
   const canUseChat = viewerAccess.canChat || hasGoldAccess();
   const isWishlisted = Array.isArray(wishlist)
@@ -132,9 +134,7 @@ export default function ProfileDetailsScreen({ navigation, route }) {
       Alert.alert(
         "Silver Required",
         "Premium plans can be upgraded only from your own My Profile page.",
-        [
-          { text: "Later", style: "cancel" },
-        ]
+        [{ text: "Later", style: "cancel" }]
       );
       return;
     }
@@ -148,9 +148,7 @@ export default function ProfileDetailsScreen({ navigation, route }) {
       Alert.alert(
         "Gold Required",
         "Premium plans can be upgraded only from your own My Profile page.",
-        [
-          { text: "Later", style: "cancel" },
-        ]
+        [{ text: "Later", style: "cancel" }]
       );
       return;
     }
@@ -160,10 +158,7 @@ export default function ProfileDetailsScreen({ navigation, route }) {
       return;
     }
 
-    Alert.alert(
-      "Chat Locked",
-      "Chat will be enabled after interest is accepted."
-    );
+    Alert.alert("Chat Locked", "Chat will be enabled after interest is accepted.");
   };
 
   return (
@@ -192,7 +187,7 @@ export default function ProfileDetailsScreen({ navigation, route }) {
           {loadingProfile ? (
             <View style={styles.loadingState}>
               <ActivityIndicator size="small" color={COLORS.primary} />
-              <Text style={styles.loadingStateText}>Checking premium access...</Text>
+              <AutoText style={styles.loadingStateText}>Checking premium access...</AutoText>
             </View>
           ) : null}
 
@@ -200,15 +195,12 @@ export default function ProfileDetailsScreen({ navigation, route }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{profile.name}</Text>
               <Text style={styles.meta}>
-                {profile.age} yrs | {profile.height} | {profile.gender}
+                {ageLabel} | {profile.height} | {genderLabel}
               </Text>
             </View>
 
             <TouchableOpacity
-              style={[
-                styles.heartBtn,
-                isWishlisted && styles.heartBtnActive,
-              ]}
+              style={[styles.heartBtn, isWishlisted && styles.heartBtnActive]}
               onPress={handleShortlist}
             >
               <Ionicons
@@ -244,34 +236,34 @@ export default function ProfileDetailsScreen({ navigation, route }) {
                       : COLORS.gold
                 }
               />
-              <Text
+              <AutoText
                 style={[
                   styles.statusText,
                   interestStatus === "Accepted" && { color: COLORS.success },
                   interestStatus === "Rejected" && { color: COLORS.danger },
                 ]}
               >
-                Interest {interestStatus}
-              </Text>
+                {`Interest ${interestStatus}`}
+              </AutoText>
             </View>
           ) : null}
 
           {canViewFullProfile ? (
             <>
               <View style={styles.infoGrid}>
-                <Info icon="people-outline" label="Community" value={profile.community} />
-                <Info icon="heart-outline" label="Religion" value={profile.religion} />
+                <Info icon="people-outline" label={isTelugu ? "కమ్యూనిటీ" : "Community"} value={profile.community} />
+                <Info icon="heart-outline" label={isTelugu ? "మతం" : "Religion"} value={profile.religion} />
+                <Info icon="pricetag-outline" label={isTelugu ? "కులం" : "Caste"} value={profile.caste} />
                 <Info icon="location-outline" label="Location" value={profile.location} />
                 <Info icon="school-outline" label="Education" value={profile.education} />
                 <Info icon="briefcase-outline" label="Job" value={profile.job} />
                 <Info icon="cash-outline" label="Income" value={profile.income} />
               </View>
 
-              <Text style={styles.sectionTitle}>About Profile</Text>
-              <Text style={styles.about}>
-                {profile.about ||
-                  "This profile is looking for a suitable life partner with good family values."}
-              </Text>
+              <AutoText style={styles.sectionTitle}>About Profile</AutoText>
+              <AutoText style={styles.about}>
+                {profile.about || "This profile is looking for a suitable life partner with good family values."}
+              </AutoText>
 
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.outlineBtn} onPress={handleShortlist}>
@@ -280,14 +272,11 @@ export default function ProfileDetailsScreen({ navigation, route }) {
                     size={20}
                     color={isWishlisted ? COLORS.success : COLORS.primary}
                   />
-                  <Text style={[styles.outlineText, isWishlisted && { color: COLORS.success }]}>Shortlist</Text>
+                  <AutoText style={[styles.outlineText, isWishlisted && { color: COLORS.success }]}>Shortlist</AutoText>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[
-                    styles.interestBtn,
-                    interestStatus && styles.disabledInterestBtn,
-                  ]}
+                  style={[styles.interestBtn, interestStatus && styles.disabledInterestBtn]}
                   onPress={handleSendInterest}
                   disabled={!!interestStatus}
                 >
@@ -296,14 +285,14 @@ export default function ProfileDetailsScreen({ navigation, route }) {
                     size={20}
                     color={interestStatus ? COLORS.muted : COLORS.white}
                   />
-                  <Text
+                  <AutoText
                     style={[
                       styles.interestText,
                       interestStatus && { color: COLORS.muted },
                     ]}
                   >
                     {interestStatus ? interestStatus : "Send Interest"}
-                  </Text>
+                  </AutoText>
                 </TouchableOpacity>
               </View>
 
@@ -319,22 +308,22 @@ export default function ProfileDetailsScreen({ navigation, route }) {
                   size={20}
                   color={COLORS.white}
                 />
-                <Text style={styles.chatBtnText}>
+                <AutoText style={styles.chatBtnText}>
                   {canUseChat
                     ? interestStatus === "Accepted"
                       ? "Start Chat"
                       : "Chat Locked Until Accepted"
                     : "Gold Plan Required For Chat"}
-                </Text>
+                </AutoText>
               </TouchableOpacity>
             </>
           ) : (
             <View style={styles.lockCard}>
               <Ionicons name="lock-closed" size={26} color={COLORS.primary} />
-              <Text style={styles.lockTitle}>Silver plan required</Text>
-              <Text style={styles.lockText}>
+              <AutoText style={styles.lockTitle}>Silver plan required</AutoText>
+              <AutoText style={styles.lockText}>
                 Free users can see profile cards only. Premium plans can be upgraded only from your own My Profile page, and they apply to the logged-in account.
-              </Text>
+              </AutoText>
             </View>
           )}
         </View>
@@ -347,8 +336,8 @@ function Info({ icon, label, value }) {
   return (
     <View style={styles.infoBox}>
       <Ionicons name={icon} size={18} color={COLORS.primary} />
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value || "-"}</Text>
+      <AutoText style={styles.infoLabel}>{label}</AutoText>
+      <AutoText style={styles.infoValue}>{value || "-"}</AutoText>
     </View>
   );
 }
@@ -537,3 +526,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+

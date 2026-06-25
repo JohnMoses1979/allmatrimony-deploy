@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ScrollView,
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -10,9 +9,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
 
+import Text from "../../components/AdminText";
 import { COLORS } from "../../constants/colors";
 import { useMatrimony } from "../../context/MatrimonyContext";
+import { API_BASE_URL, toApiAssetUrl } from "../../config/api";
 
 export default function AdminDashboardScreen({ navigation }) {
   const {
@@ -22,11 +24,35 @@ export default function AdminDashboardScreen({ navigation }) {
     verificationRequests = [],
     approvalRequests = [],
     vendorApprovalRequests = [],
-    currentUser,
     getAdminNotifications,
     loadAdminData,
   } = useMatrimony();
 
+  const [adminProfile, setAdminProfile] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const loadAdminProfile = async () => {
+        try {
+          const adminId = "1";
+          const response = await fetch(`${API_BASE_URL}/api/admin/profile/${adminId}`);
+
+          if (!response.ok) return;
+          const data = await response.json();
+          if (active) setAdminProfile(data);
+        } catch (error) {
+          console.log("admin dashboard profile error:", error);
+        }
+      };
+
+      loadAdminProfile();
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
   useEffect(() => {
     if (typeof loadAdminData === "function") {
       loadAdminData();
@@ -57,21 +83,8 @@ export default function AdminDashboardScreen({ navigation }) {
 
   const pendingVendorCount = vendorApprovalRequests.length;
 
-  const handleLogout = () => {
-    const parentNav = navigation.getParent();
-
-    if (parentNav) {
-      parentNav.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      });
-      return;
-    }
-
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
+  const handleProfilePress = () => {
+    navigation.navigate("AdminProfile");
   };
 
   return (
@@ -82,15 +95,11 @@ export default function AdminDashboardScreen({ navigation }) {
       >
         <View style={styles.headerRow}>
           <View style={styles.adminIcon}>
-            {currentUser?.image ? (
-              <Image source={{ uri: currentUser.image }} style={styles.adminAvatarImage} />
-            ) : (
-              <Ionicons
-                name="shield-checkmark"
-                size={22}
-                color={COLORS.primary}
-              />
-            )}
+            <Ionicons
+              name="shield-checkmark"
+              size={22}
+              color={COLORS.primary}
+            />
           </View>
 
           <View style={styles.headerTitleBox}>
@@ -121,9 +130,16 @@ export default function AdminDashboardScreen({ navigation }) {
           <TouchableOpacity
             style={styles.logoutBtn}
             activeOpacity={0.85}
-            onPress={handleLogout}
+            onPress={handleProfilePress}
           >
-            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+            {adminProfile?.profileImageUrl ? (
+              <Image
+                source={{ uri: toApiAssetUrl(adminProfile.profileImageUrl) }}
+                style={styles.profileButtonImage}
+              />
+            ) : (
+              <Ionicons name="person-outline" size={20} color={COLORS.white} />
+            )}
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -445,6 +461,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.35)",
+    overflow: "hidden",
+  },
+
+  profileButtonImage: {
+    width: "100%",
+    height: "100%",
   },
 
   content: {
@@ -562,3 +584,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
