@@ -32,7 +32,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.all",
       "usesCleartextTraffic": true,
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"

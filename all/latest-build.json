@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ec232fcc-b8ef-4c44-9fcf-c9b5c9dd1caa",
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "artifacts": {
+      "buildUrl": "https://expo.dev/artifacts/eas/5feEmD-9kgaI4iTA69Icp86hvlIaruA2cNZXh_vCeh0.apk",
+      "applicationArchiveUrl": "https://expo.dev/artifacts/eas/5feEmD-9kgaI4iTA69Icp86hvlIaruA2cNZXh_vCeh0.apk"
+    },
+    "fingerprint": {
+      "id": "019f024d-a519-7407-82d5-914852772283",
+      "hash": "d006a23b7ed69f628d527ba2cb15ee288941441e"
+    },
+    "initiatingActor": {
+      "id": "7ec26c75-837e-4391-b6c2-489075d0b486",
+      "displayName": "jaya5242"
+    },
+    "logFiles": [
+      "https://storage.googleapis.com/eas-workflows-production/logs/c1c8d870-9ee5-468b-9b0b-ef2e3ed4d502/ec232fcc-b8ef-4c44-9fcf-c9b5c9dd1caa/2026-06-26T05%3A01%3A14Z-6f2d3d40-e64d-4270-8e0b-41a1a9e59476.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260626%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260626T051832Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=3c1fcb7dfa2a9a342382aa0911a5ddb9c64fa92b2ded98eb589a11fc4431358d0b2cd3c4038f5fc592ef6f5d2603be9dc1ac4a2d360e86c69169f0d9fd1728e16586fa07c2512945d9457612066b216bdfa0c8190986d24ccc8091079492efee9225bab35ffe907beb05d34619a4a0a6fb2c5ffe19ea7adfafb6a1246b4d8cb46336d598a2484b9ca60ef1bc789319681eee538336d63581e8cdf0c7ca9e17ac0c79f0401b5cfb3858b8deefe9c4c97b68511b3eb8b87974375241ee4628a5cb82327501c8b51b603c9b21d16bbc26a9c7c5fb5e4312a64625a3c74b3b3b9cf46f00eeded543e31c86b669a66d2f409483dd6d19fe8802d370a75d202d58f591"
+    ],
+    "project": {
+      "id": "c1c8d870-9ee5-468b-9b0b-ef2e3ed4d502",
+      "name": "all",
+      "slug": "all",
+      "ownerAccount": {
+        "id": "a423c1cb-1dc6-47ef-bf32-bb45d5b8635e",
+        "name": "jaya5242"
+      }
+    },
+    "distribution": "STORE",
+    "buildProfile": "preview",
+    "sdkVersion": "54.0.0",
+    "appVersion": "1.0.0",
+    "appBuildVersion": "1",
+    "priority": "NORMAL",
+    "createdAt": "2026-06-26T05:01:10.783Z",
+    "updatedAt": "2026-06-26T05:11:19.917Z",
+    "completedAt": "2026-06-26T05:11:19.767Z",
+    "expirationDate": "2026-07-26T05:01:10.803Z",
+    "isForIosSimulator": false,
+    "metrics": {
+      "buildWaitTime": 3356,
+      "buildQueueTime": 4599,
+      "buildDuration": 601029
+    }
+  }
+]
