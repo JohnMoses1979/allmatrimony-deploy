@@ -70,3 +70,19 @@ target/
 all/BACKEND/target/
 all/eas-build.log
 eas-build.log
+
+# secrets
+backend.env
+frontend.env
+.env
+*.env
+all/.env
+
+# generated
+uploads/
+node_modules/
+all/node_modules/
+target/
+all/BACKEND/target/
+all/eas-build.log
+eas-build.log

@@ -19,7 +19,7 @@ jobs:
       - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Preserve server env files and uploads
+      - name: Preserve server env files
         run: |
           set -e
           mkdir -p /home/ubuntu/allmatrimony-env-backup
@@ -28,7 +28,7 @@ jobs:
           [ -f /home/ubuntu/allmatrimony-deploy/backend.env ] && cp /home/ubuntu/allmatrimony-deploy/backend.env /home/ubuntu/allmatrimony-env-backup/backend.env || true
           [ -f /home/ubuntu/allmatrimony-deploy/frontend.env ] && cp /home/ubuntu/allmatrimony-deploy/frontend.env /home/ubuntu/allmatrimony-env-backup/frontend.env || true
 
-      - name: Sync latest code to deployment folder
+      - name: Sync latest code to deploy folder
         run: |
           set -e
 
@@ -57,12 +57,12 @@ jobs:
           [ -f /home/ubuntu/allmatrimony-env-backup/frontend.env ] && cp /home/ubuntu/allmatrimony-env-backup/frontend.env /home/ubuntu/allmatrimony-deploy/frontend.env || true
 
           if [ ! -f /home/ubuntu/allmatrimony-deploy/backend.env ]; then
-            echo "ERROR: backend.env missing on EC2."
+            echo "ERROR: backend.env missing on EC2"
             exit 1
           fi
 
           if [ ! -f /home/ubuntu/allmatrimony-deploy/frontend.env ]; then
-            echo "ERROR: frontend.env missing on EC2."
+            echo "ERROR: frontend.env missing on EC2"
             exit 1
           fi
 
@@ -80,14 +80,11 @@ jobs:
       - name: Test backend health
         run: |
           set -e
-
           sleep 25
           curl -fsS http://127.0.0.1:8090/api/health
           echo "Backend health check passed"
 
       - name: Test frontend
         run: |
-          set -e
-
           curl -I http://127.0.0.1:8081 || true
           echo "Deployment completed successfully"
