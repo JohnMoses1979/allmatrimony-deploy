@@ -1,4 +1,3 @@
-# CI/CD protection
 .github/workflows/* @JohnMoses1979
 .github/CODEOWNERS @JohnMoses1979
 docker-compose.yml @JohnMoses1979
